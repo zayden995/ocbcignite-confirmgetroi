@@ -95,8 +95,9 @@ def test_non_approved_source_gives_no_support_to_tree_but_fools_baseline(tree):
     assert {(c.claim_id, c.passage_id) for c in tree.baseline.checks if c.entails} >= {("s1.c3", "FD-500#p1")}
 
 
-def test_amendment_chain_is_in_the_edges(tree):
-    assert any(e.kind == "parent" and e.source == "FD-102#p1" and e.target.startswith("FD-101#") for e in tree.edges)
+def test_amendment_edge_points_at_the_passage_actually_amended(tree):
+    # FD-101 has two passages in the tree; the exception amends the one that supports c3, not just "the first"
+    assert any(e.kind == "parent" and e.source == "FD-102#p1" and e.target == "FD-101#p2" for e in tree.edges)
 
 
 def test_claim_to_passage_links_and_trunk(tree):

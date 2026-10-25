@@ -73,14 +73,24 @@ def build_edges(claims: list[ClaimNode], roots: list[RootNode]) -> list[Edge]:
                 edges.append(Edge(source=pid, target=c.id, kind="cites"))
         edges.append(Edge(source=c.id, target="conclusion", kind="claim_of"))
 
-    first_of_doc: dict[str, str] = {}
+    def related_root(child: RootNode, doc_id: str | None) -> str | None:
+        """The passage of doc_id that child actually relates to: prefer one that supports a claim
+        the child challenges (the passage being amended/replaced), else any passage of that doc."""
+        if doc_id is None:
+            return None
+        candidates = [r.id for r in roots if r.doc_id == doc_id]
+        for c in claims:
+            if any(e.passage_id == child.id and e.role == "challenges" for e in c.evidence):
+                for e in c.evidence:
+                    if e.role == "supports" and e.passage_id in candidates:
+                        return e.passage_id
+        return candidates[0] if candidates else None
+
     for r in roots:
-        first_of_doc.setdefault(r.doc_id, r.id)
-    for r in roots:
-        if r.parent_doc_id in first_of_doc:
-            edges.append(Edge(source=r.id, target=first_of_doc[r.parent_doc_id], kind="parent"))
-        if r.supersedes in first_of_doc:
-            edges.append(Edge(source=r.id, target=first_of_doc[r.supersedes], kind="supersedes"))
+        if (target := related_root(r, r.parent_doc_id)) is not None:
+            edges.append(Edge(source=r.id, target=target, kind="parent"))
+        if (target := related_root(r, r.supersedes)) is not None:
+            edges.append(Edge(source=r.id, target=target, kind="supersedes"))
     return edges
 
 
