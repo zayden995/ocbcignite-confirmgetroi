@@ -1,0 +1,43 @@
+{
+  "_label": "SCRIPTED fixtures for MOCK LLM mode. These are not measured model outputs.",
+  "extract": {
+    "s1_overlooked_exception": {
+      "entities": { "product": "SteadyGrowth" },
+      "params": { "deposit_amount": 20000, "tenor_months": 12, "channel": "FAST" },
+      "conclusion": "Quote the customer 3.20% p.a.",
+      "claims": [
+        {
+          "id": "s1.c1",
+          "text": "The SteadyGrowth 12-month fixed deposit earns the 3.20% p.a. board rate.",
+          "cited_passage_ids": ["FD-101#p1"],
+          "required_slots": []
+        },
+        {
+          "id": "s1.c2",
+          "text": "A SGD 20,000 deposit meets the SGD 10,000 minimum for the board rate.",
+          "cited_passage_ids": ["FD-101#p2"],
+          "required_slots": ["deposit_amount"]
+        },
+        {
+          "id": "s1.c3",
+          "text": "The 3.20% board rate applies to deposits funded via FAST transfer.",
+          "cited_passage_ids": ["FD-101#p2", "FD-500#p1"],
+          "required_slots": ["channel"]
+        }
+      ]
+    }
+  },
+  "nli": {
+    "s1.c1|FD-101#p1": { "label": "entails", "score": 0.95 },
+    "s1.c2|FD-101#p2": { "label": "entails", "score": 0.90 },
+    "s1.c3|FD-101#p2": { "label": "entails", "score": 0.88 },
+    "s1.c3|FD-500#p1": { "label": "entails", "score": 0.90 },
+    "s1.c3|FD-102#p1": { "label": "contradicts", "score": 0.93 }
+  },
+  "corrections": {
+    "s1.c3": {
+      "text": "The 3.20% board rate does not apply to FAST-funded deposits. Quote the 2.60% p.a. standard rate for this deposit.",
+      "passage_id": "FD-102#p1"
+    }
+  }
+}

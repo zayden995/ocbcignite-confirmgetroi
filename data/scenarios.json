@@ -1,0 +1,14 @@
+{
+  "_label": "Synthetic - not real OCBC policy",
+  "scenarios": [
+    {
+      "id": "s1_overlooked_exception",
+      "title": "1. Overlooked exception (hero)",
+      "expected_overall": "Refuted",
+      "employee": { "role": "RM", "region": "SG" },
+      "question": "My customer wants to place SGD 20,000 into a SteadyGrowth 12-month fixed deposit by FAST transfer today. What interest rate should I quote?",
+      "ai_answer": "The SteadyGrowth 12-month fixed deposit earns the 3.20% p.a. board rate. Your customer's SGD 20,000 deposit meets the SGD 10,000 minimum, and the board rate applies to deposits funded via FAST transfer, so you can confidently quote 3.20% p.a. [Sources: FD-101, FD-500]",
+      "citations": ["FD-101#p1", "FD-101#p2", "FD-500#p1"]
+    }
+  ]
+}

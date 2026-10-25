@@ -78,6 +78,30 @@ class Evidence(BaseModel):
     effect: str | None = None
 
 
+class Claim(BaseModel):
+    """One atomic claim from the AI answer."""
+
+    id: str
+    text: str
+    cited_passage_ids: list[str] = Field(default_factory=list)
+    # parameters the claim presupposes (checked by slot coverage)
+    required_slots: list[str] = Field(default_factory=list)
+
+
+class Extraction(BaseModel):
+    """Output of llm.extract(): entities, case parameters and atomic claims."""
+
+    entities: dict[str, Any] = Field(default_factory=dict)
+    params: dict[str, Any] = Field(default_factory=dict)
+    conclusion: str
+    claims: list[Claim]
+
+
+class NLIResult(BaseModel):
+    label: Literal["entails", "contradicts", "neutral"]
+    score: float = Field(ge=0.0, le=1.0)
+
+
 class IngestedPassage(BaseModel):
     """A passage plus the result of ingestion-time checks."""
 
