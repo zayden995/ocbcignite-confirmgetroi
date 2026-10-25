@@ -18,7 +18,7 @@ def tree():
 
 
 def c3(tree):
-    return next(c for c in tree.claims if c.id == "s1.c3")
+    return next(c for c in tree.claims if c.id == "s1.c2")
 
 
 def test_investigate_trace_shows_usable_and_unusable_citations(tree):

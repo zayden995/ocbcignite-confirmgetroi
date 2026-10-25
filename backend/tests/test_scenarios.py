@@ -93,18 +93,16 @@ def test_s3_cited_policy_is_expired_and_superseded(corpus):
     assert c1.failure_types == ["outdated_or_inapplicable"]
     assert c1.proposed_correction.passage_id == "FD-301#p1" and "100,000" in c1.proposed_correction.text
     assert any(e.kind == "supersedes" and e.source == "FD-301#p1" and e.target == "FD-300#p1" for e in tree.edges)
-    assert claim(tree, "s3.c2").status == "Verified"  # the per-transaction part is supported by the current policy
 
 
 def test_s3_in_malaysia_the_singapore_policy_is_inapplicable(corpus):
     tree = run(corpus, "s3_outdated_or_inapplicable", region="MY")
-    c1, c2 = claim(tree, "s3.c1"), claim(tree, "s3.c2")
+    c1 = claim(tree, "s3.c1")
     assert tree.overall.status == "Refuted"
-    assert "FD-301#p1" not in {r.id for r in tree.roots if r.state == "active"}  # SG-only policy is filtered
+    assert "FD-301#p1" not in {r.id for r in tree.roots}  # the SG-only policy is not even retrieved
     assert c1.status == "Refuted" and c1.failure_types == ["outdated_or_inapplicable"]
     assert c1.proposed_correction.passage_id == "FD-302#p1"
     assert "DuitNow" in c1.proposed_correction.text  # scripted text follows the evidence, not the SG variant
-    assert c2.status == "Unresolved" and c2.proposed_correction is not None
 
 
 # --- 4. unsupported assumption --------------------------------------------
@@ -112,7 +110,7 @@ def test_s3_in_malaysia_the_singapore_policy_is_inapplicable(corpus):
 def test_s4_missing_inputs_make_it_unresolved(corpus):
     tree = run(corpus, "s4_unsupported_assumption")
     c1 = claim(tree, "s4.c1")
-    assert [c.status for c in tree.claims] == ["Unresolved", "Verified"]
+    assert [c.status for c in tree.claims] == ["Unresolved"]
     assert c1.missing_slots == ["deposit_amount", "channel"]
     assert c1.failure_types == ["unsupported_assumption"]
     assert [m.field for m in tree.missing_inputs] == ["deposit_amount", "channel"]
@@ -151,6 +149,32 @@ def test_s5_clean_control_verifies_with_no_flags(corpus):
     for c in tree.claims:
         assert c.status == "Verified" and c.failure_types == [] and c.missing_slots == []
         assert c.sc == 0.0 and c.se > 0.85
+
+
+# --- why role and region exist: the same answer is right for one employee and wrong for another ---
+
+@pytest.mark.parametrize(
+    "role,region,status,failure",
+    [
+        ("RM", "SG", "Verified", []),
+        ("BM", "SG", "Verified", []),                                    # the policy is written for RMs and BMs
+        ("CC", "SG", "Unresolved", ["outdated_or_inapplicable"]),         # not written for call centre agents
+        ("RM", "MY", "Refuted", ["outdated_or_inapplicable"]),            # Singapore-only, and Malaysia says no bonus
+    ],
+)
+def test_s5_same_answer_different_employee(corpus, role, region, status, failure):
+    c1 = claim(run(corpus, "s5_clean_control", role=role, region=region), "s5.c1")
+    assert (c1.status, c1.failure_types) == (status, failure)
+
+
+def test_s5_role_and_region_explain_themselves_in_the_payload(corpus):
+    cc = run(corpus, "s5_clean_control", role="CC")
+    root = next(r for r in cc.roots if r.id == "FD-320#p1")
+    assert root.state == "filtered_inapplicable"
+    assert "CC" in root.state_detail and "RM" in root.state_detail  # says which roles the policy is for
+    assert "Relationship Managers" in claim(cc, "s5.c1").proposed_correction.text
+    my = run(corpus, "s5_clean_control", region="MY")
+    assert claim(my, "s5.c1").proposed_correction.passage_id == "FD-321#p1"
 
 
 # --- baseline vs TREE ---------------------------------------------------------

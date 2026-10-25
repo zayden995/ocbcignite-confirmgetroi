@@ -6,8 +6,8 @@
       "title": "1. Overlooked exception (hero)",
       "expected_overall": "Refuted",
       "employee": { "role": "RM", "region": "SG" },
-      "question": "My customer wants to place SGD 20,000 into a SteadyGrowth 12-month fixed deposit by FAST transfer today. What interest rate should I quote?",
-      "ai_answer": "The SteadyGrowth 12-month fixed deposit earns the 3.20% p.a. board rate. Your customer's SGD 20,000 deposit meets the SGD 10,000 minimum, and the board rate applies to deposits funded via FAST transfer, so you can confidently quote 3.20% p.a. [Sources: FD-101, FD-500]",
+      "question": "A customer wants to put SGD 20,000 into a SteadyGrowth 12-month deposit via FAST. What rate do I quote?",
+      "ai_answer": "Quote 3.20% p.a. The board rate applies to FAST deposits. [Sources: FD-101, FD-500]",
       "citations": ["FD-101#p1", "FD-101#p2", "FD-500#p1"]
     },
     {
@@ -15,8 +15,8 @@
       "title": "2. Conflicting documents",
       "expected_overall": "Unresolved",
       "employee": { "role": "RM", "region": "SG" },
-      "question": "My customer wants to take out their SteadyGrowth fixed deposit before it matures. Is there a penalty?",
-      "ai_answer": "Yes. Early withdrawal of a SteadyGrowth fixed deposit before maturity incurs a penalty of 1.0% of the principal, so tell the customer they will lose 1.0% of their principal. [Source: FD-200]",
+      "question": "My customer wants to withdraw a SteadyGrowth deposit early. Is there a penalty?",
+      "ai_answer": "Yes: 1.0% of the principal. [Source: FD-200]",
       "citations": ["FD-200#p1"]
     },
     {
@@ -24,8 +24,8 @@
       "title": "3. Outdated or inapplicable policy",
       "expected_overall": "Refuted",
       "employee": { "role": "RM", "region": "SG" },
-      "question": "What is the maximum FAST transfer amount per transaction for a retail customer?",
-      "ai_answer": "FAST transfers for retail customers are limited to SGD 200,000 per transaction, and the limit is applied to each single transaction. [Source: FD-300]",
+      "question": "What is the FAST transfer limit per transaction for retail customers?",
+      "ai_answer": "SGD 200,000 per transaction. [Source: FD-300]",
       "citations": ["FD-300#p1"]
     },
     {
@@ -33,18 +33,18 @@
       "title": "4. Unsupported assumption",
       "expected_overall": "Unresolved",
       "employee": { "role": "RM", "region": "SG" },
-      "question": "What interest rate will my customer get on a SteadyGrowth 12-month fixed deposit?",
-      "ai_answer": "The customer will earn the 3.20% p.a. board rate on a SteadyGrowth 12-month fixed deposit, and the 12-month tenor is available. [Sources: FD-101, FD-400]",
-      "citations": ["FD-101#p2", "FD-400#p1"]
+      "question": "What rate will my customer get on a SteadyGrowth 12-month deposit?",
+      "ai_answer": "3.20% p.a. [Source: FD-101]",
+      "citations": ["FD-101#p2"]
     },
     {
       "id": "s5_clean_control",
       "title": "5. Clean control",
       "expected_overall": "Verified",
       "employee": { "role": "RM", "region": "SG" },
-      "question": "What is the minimum placement for a SteadyGrowth fixed deposit, and which tenors can the customer pick?",
-      "ai_answer": "The minimum placement for a SteadyGrowth fixed deposit is SGD 1,000, and the customer can choose a tenor of 6, 12 or 24 months. [Source: FD-400]",
-      "citations": ["FD-400#p1"]
+      "question": "What bonus rate can I offer a Priority customer on a SteadyGrowth deposit?",
+      "ai_answer": "An extra 0.10% p.a. relationship bonus. [Source: FD-320]",
+      "citations": ["FD-320#p1"]
     }
   ]
 }

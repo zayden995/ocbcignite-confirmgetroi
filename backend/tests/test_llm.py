@@ -19,9 +19,9 @@ def test_default_provider_is_mock():
 
 def test_mock_extract_returns_scripted_claims_for_the_scenario():
     ex = MockLLM().extract(S1["question"], S1["ai_answer"])
-    assert [c.id for c in ex.claims] == ["s1.c1", "s1.c2", "s1.c3"]
+    assert [c.id for c in ex.claims] == ["s1.c1", "s1.c2"]
     assert ex.params["channel"] == "FAST"
-    assert ex.claims[2].required_slots == ["channel"]
+    assert ex.claims[1].required_slots == ["channel"]
 
 
 def test_mock_extract_unknown_text_raises_instead_of_inventing():
@@ -32,7 +32,7 @@ def test_mock_extract_unknown_text_raises_instead_of_inventing():
 def test_mock_nli_scripted_and_unscripted():
     llm = MockLLM()
     corpus = load_corpus()
-    claim = Claim(id="s1.c3", text="x")
+    claim = Claim(id="s1.c2", text="x")
     hit = llm.nli(claim, corpus.records["FD-102#p1"].passage)
     assert (hit.label, hit.score) == ("contradicts", 0.93)
     # an unscripted pair is "no relation", never a made-up score

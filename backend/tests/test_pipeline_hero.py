@@ -43,7 +43,7 @@ def test_retrieval_respects_region(corpus):
 
 def test_retrieval_ranks_the_exception_first_for_a_counter_query(corpus):
     emp = Employee(role="RM", region="SG")
-    hits = retrieve(corpus, "exception for The 3.20% board rate applies to deposits funded via FAST transfer.", emp, DEMO_DATE)
+    hits = retrieve(corpus, "exception for The board rate applies to FAST deposits.", emp, DEMO_DATE)
     assert hits[0].passage.passage_id == "FD-102#p1"
 
 
@@ -55,28 +55,28 @@ def test_overall_is_refuted_while_baseline_passes(tree):
 
 
 def test_claim_statuses(tree):
-    assert [c.status for c in tree.claims] == ["Verified", "Verified", "Refuted"]
+    assert [c.status for c in tree.claims] == ["Verified", "Refuted"]
 
 
 def test_exception_claim_details(tree):
-    c3 = claim(tree, "s1.c3")
-    assert c3.se == 0.88 and c3.sc == 0.93
-    assert c3.failure_types == ["overlooked_exception"]
-    challenger = next(e for e in c3.evidence if e.role == "challenges")
+    c2 = claim(tree, "s1.c2")
+    assert c2.se == 0.88 and c2.sc == 0.93
+    assert c2.failure_types == ["overlooked_exception"]
+    challenger = next(e for e in c2.evidence if e.role == "challenges")
     assert challenger.passage_id == "FD-102#p1"
     assert challenger.counter_query  # found by a counter-query template
     assert challenger.effect == "counts"
-    assert c3.proposed_correction.passage_id == "FD-102#p1"
-    assert "2.60%" in c3.proposed_correction.text
+    assert c2.proposed_correction.passage_id == "FD-102#p1"
+    assert "2.60%" in c2.proposed_correction.text
 
 
-def test_verified_claims_have_no_failure_or_correction(tree):
-    for cid in ("s1.c1", "s1.c2"):
-        c = claim(tree, cid)
-        assert c.failure_types == [] and c.proposed_correction is None
+def test_verified_claim_has_no_failure_or_correction(tree):
+    c = claim(tree, "s1.c1")
+    assert c.failure_types == [] and c.proposed_correction is None
 
 
 def test_conditions_are_evaluated_for_the_supported_claim(tree):
+    # the rule behind the FAST claim carries a minimum deposit and a tenor; both pass for this case
     c2 = claim(tree, "s1.c2")
     assert {(r.field, r.result) for r in c2.conditions} == {("deposit_amount", "pass"), ("tenor_months", "pass")}
 
@@ -90,21 +90,21 @@ def test_roots_show_state_hash_and_whitelist_rejection(tree):
 
 
 def test_non_approved_source_gives_no_support_to_tree_but_fools_baseline(tree):
-    c3 = claim(tree, "s1.c3")
-    assert "FD-500#p1" not in {e.passage_id for e in c3.evidence}
-    assert {(c.claim_id, c.passage_id) for c in tree.baseline.checks if c.entails} >= {("s1.c3", "FD-500#p1")}
+    c2 = claim(tree, "s1.c2")
+    assert "FD-500#p1" not in {e.passage_id for e in c2.evidence}
+    assert {(c.claim_id, c.passage_id) for c in tree.baseline.checks if c.entails} >= {("s1.c2", "FD-500#p1")}
 
 
 def test_amendment_edge_points_at_the_passage_actually_amended(tree):
-    # FD-101 has two passages in the tree; the exception amends the one that supports c3, not just "the first"
+    # FD-101 has two passages in the tree; the exception amends the one that supports the claim, not just "the first"
     assert any(e.kind == "parent" and e.source == "FD-102#p1" and e.target == "FD-101#p2" for e in tree.edges)
 
 
 def test_claim_to_passage_links_and_trunk(tree):
     kinds = {(e.source, e.target, e.kind) for e in tree.edges}
-    assert ("FD-102#p1", "s1.c3", "challenges") in kinds
-    assert ("FD-101#p2", "s1.c3", "supports") in kinds
-    assert ("s1.c3", "conclusion", "claim_of") in kinds
+    assert ("FD-102#p1", "s1.c2", "challenges") in kinds
+    assert ("FD-101#p2", "s1.c2", "supports") in kinds
+    assert ("s1.c2", "conclusion", "claim_of") in kinds
     assert tree.trunk.status == "Refuted"
 
 

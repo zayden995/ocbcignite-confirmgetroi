@@ -57,7 +57,8 @@ def meta():
         "roles": defs["roles"],
         "regions": defs["regions"],
         "scenarios": [
-            {"id": s["id"], "title": s["title"], "employee": s["employee"]} for s in load_scenarios()
+            {"id": s["id"], "title": s["title"], "employee": s["employee"], "question": s["question"]}
+            for s in load_scenarios()
         ],
     }
 

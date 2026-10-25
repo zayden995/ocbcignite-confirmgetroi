@@ -12,6 +12,7 @@ def test_meta_reports_mock_mode_and_options():
     assert m["demo_date"] == "2026-10-28"
     assert {r["code"] for r in m["roles"]} == {"RM", "BM", "CC"}
     assert m["scenarios"][0]["id"] == "s1_overlooked_exception"
+    assert all(s["question"] for s in m["scenarios"])  # the chat box matches typed text against these
 
 
 def test_verify_hero_over_http():
