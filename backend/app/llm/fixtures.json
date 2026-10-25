@@ -6,24 +6,45 @@
       "params": { "deposit_amount": 20000, "tenor_months": 12, "channel": "FAST" },
       "conclusion": "Quote the customer 3.20% p.a.",
       "claims": [
-        {
-          "id": "s1.c1",
-          "text": "The SteadyGrowth 12-month fixed deposit earns the 3.20% p.a. board rate.",
-          "cited_passage_ids": ["FD-101#p1"],
-          "required_slots": []
-        },
-        {
-          "id": "s1.c2",
-          "text": "A SGD 20,000 deposit meets the SGD 10,000 minimum for the board rate.",
-          "cited_passage_ids": ["FD-101#p2"],
-          "required_slots": ["deposit_amount"]
-        },
-        {
-          "id": "s1.c3",
-          "text": "The 3.20% board rate applies to deposits funded via FAST transfer.",
-          "cited_passage_ids": ["FD-101#p2", "FD-500#p1"],
-          "required_slots": ["channel"]
-        }
+        { "id": "s1.c1", "text": "The SteadyGrowth 12-month fixed deposit earns the 3.20% p.a. board rate.", "cited_passage_ids": ["FD-101#p1"], "required_slots": [] },
+        { "id": "s1.c2", "text": "A SGD 20,000 deposit meets the SGD 10,000 minimum for the board rate.", "cited_passage_ids": ["FD-101#p2"], "required_slots": ["deposit_amount"] },
+        { "id": "s1.c3", "text": "The 3.20% board rate applies to deposits funded via FAST transfer.", "cited_passage_ids": ["FD-101#p2", "FD-500#p1"], "required_slots": ["channel"] }
+      ]
+    },
+    "s2_conflicting_documents": {
+      "entities": { "product": "SteadyGrowth" },
+      "params": {},
+      "conclusion": "Tell the customer a 1.0% principal penalty applies.",
+      "claims": [
+        { "id": "s2.c1", "text": "Early withdrawal of a SteadyGrowth fixed deposit incurs a penalty of 1.0% of the principal amount.", "cited_passage_ids": ["FD-200#p1"], "required_slots": [] },
+        { "id": "s2.c2", "text": "A SteadyGrowth fixed deposit can be withdrawn before maturity.", "cited_passage_ids": ["FD-200#p1"], "required_slots": [] }
+      ]
+    },
+    "s3_outdated_or_inapplicable": {
+      "entities": { "product": "Transfers" },
+      "params": {},
+      "conclusion": "Tell the customer the limit is SGD 200,000 per transaction.",
+      "claims": [
+        { "id": "s3.c1", "text": "FAST transfers for retail customers are limited to SGD 200,000 per transaction.", "cited_passage_ids": ["FD-300#p1"], "required_slots": [] },
+        { "id": "s3.c2", "text": "The FAST limit is applied per transaction.", "cited_passage_ids": ["FD-300#p1"], "required_slots": [] }
+      ]
+    },
+    "s4_unsupported_assumption": {
+      "entities": { "product": "SteadyGrowth" },
+      "params": { "tenor_months": 12 },
+      "conclusion": "Quote the customer 3.20% p.a.",
+      "claims": [
+        { "id": "s4.c1", "text": "A SteadyGrowth 12-month fixed deposit earns the 3.20% p.a. board rate.", "cited_passage_ids": ["FD-101#p2"], "required_slots": ["deposit_amount", "channel"] },
+        { "id": "s4.c2", "text": "The 12-month tenor is available for a SteadyGrowth fixed deposit.", "cited_passage_ids": ["FD-400#p1"], "required_slots": ["tenor_months"] }
+      ]
+    },
+    "s5_clean_control": {
+      "entities": { "product": "SteadyGrowth" },
+      "params": {},
+      "conclusion": "The minimum is SGD 1,000, with 6, 12 or 24-month tenors.",
+      "claims": [
+        { "id": "s5.c1", "text": "The minimum placement for a SteadyGrowth fixed deposit is SGD 1,000.", "cited_passage_ids": ["FD-400#p1"], "required_slots": [] },
+        { "id": "s5.c2", "text": "SteadyGrowth fixed deposits are available in tenors of 6, 12 and 24 months.", "cited_passage_ids": ["FD-400#p1"], "required_slots": [] }
       ]
     }
   },
@@ -32,11 +53,58 @@
     "s1.c2|FD-101#p2": { "label": "entails", "score": 0.90 },
     "s1.c3|FD-101#p2": { "label": "entails", "score": 0.88 },
     "s1.c3|FD-500#p1": { "label": "entails", "score": 0.90 },
-    "s1.c3|FD-102#p1": { "label": "contradicts", "score": 0.93 }
+    "s1.c3|FD-102#p1": { "label": "contradicts", "score": 0.93 },
+
+    "s2.c1|FD-200#p1": { "label": "entails", "score": 0.93 },
+    "s2.c1|FD-201#p1": { "label": "contradicts", "score": 0.84 },
+    "s2.c2|FD-200#p1": { "label": "entails", "score": 0.90 },
+    "s2.c2|FD-201#p1": { "label": "entails", "score": 0.89 },
+
+    "s3.c1|FD-300#p1": { "label": "entails", "score": 0.94 },
+    "s3.c1|FD-301#p1": { "label": "contradicts", "score": 0.92 },
+    "s3.c1|FD-302#p1": { "label": "contradicts", "score": 0.90 },
+    "s3.c2|FD-300#p1": { "label": "entails", "score": 0.90 },
+    "s3.c2|FD-301#p1": { "label": "entails", "score": 0.91 },
+
+    "s4.c1|FD-101#p2": { "label": "entails", "score": 0.91 },
+    "s4.c1|FD-102#p1": { "label": "contradicts", "score": 0.90 },
+    "s4.c2|FD-400#p1": { "label": "entails", "score": 0.93 },
+
+    "s5.c1|FD-400#p1": { "label": "entails", "score": 0.96 },
+    "s5.c2|FD-400#p1": { "label": "entails", "score": 0.95 }
   },
+  "_corrections_note": "Keyed 'claim|status|passage that drove the outcome' (empty when no passage did); falls back to 'claim|status'. The outcome changes with inputs, so the script must too.",
   "corrections": {
-    "s1.c3|Refuted": {
+    "s1.c3|Refuted|FD-102#p1": {
       "text": "The 3.20% board rate does not apply to FAST-funded deposits. Quote the 2.60% p.a. standard rate for this deposit.",
+      "passage_id": "FD-102#p1"
+    },
+    "s2.c1|Unresolved|FD-201#p1": {
+      "text": "Two active documents disagree: FD-200 says a 1.0% principal penalty, FD-201 says no principal penalty but accrued interest is forfeited. Do not quote a penalty until the policy owner confirms which applies.",
+      "passage_id": "FD-201#p1"
+    },
+    "s3.c1|Refuted|FD-301#p1": {
+      "text": "FAST transfers for retail customers are limited to SGD 100,000 per transaction from 1 July 2026. The SGD 200,000 limit has been replaced.",
+      "passage_id": "FD-301#p1"
+    },
+    "s3.c1|Refuted|FD-302#p1": {
+      "text": "FAST limits do not apply in Malaysia. Malaysia-booked retail customers transfer via DuitNow, limited to MYR 50,000 per transaction.",
+      "passage_id": "FD-302#p1"
+    },
+    "s3.c2|Unresolved|": {
+      "text": "No active policy for your region confirms a per-transaction FAST limit. For Malaysia, see the DuitNow limit in FD-302.",
+      "passage_id": "FD-302#p1"
+    },
+    "s4.c1|Unresolved|": {
+      "text": "Before quoting 3.20% p.a., confirm the deposit amount (SGD 10,000 or more is required) and the funding channel (FAST-funded deposits are excluded).",
+      "passage_id": "FD-101#p2"
+    },
+    "s4.c1|Refuted|": {
+      "text": "This deposit does not meet the SGD 10,000 minimum for the 3.20% p.a. board rate, so do not quote it.",
+      "passage_id": "FD-101#p2"
+    },
+    "s4.c1|Refuted|FD-102#p1": {
+      "text": "FAST-funded deposits are excluded from the 3.20% p.a. board rate. Quote the 2.60% p.a. standard rate instead.",
       "passage_id": "FD-102#p1"
     }
   }

@@ -206,8 +206,7 @@
       "expiry_date": "2026-06-30",
       "status": "superseded",
       "region": [
-        "SG",
-        "MY"
+        "SG"
       ],
       "role_scope": [
         "RM",
@@ -235,8 +234,7 @@
       "expiry_date": "2027-06-30",
       "status": "active",
       "region": [
-        "SG",
-        "MY"
+        "SG"
       ],
       "role_scope": [
         "RM",
@@ -454,6 +452,34 @@
       "conditions": [],
       "text": "Matured SteadyGrowth deposits roll over automatically at the prevailing board rate unless the customer opts out three days before maturity.",
       "hash": "ed0973bb147bedcad2550d76f57bab7e2e3d46f9dc0d774332296a41deef95a9"
+    },
+    {
+      "passage_id": "FD-302#p1",
+      "doc_id": "FD-302",
+      "title": "Malaysia Retail Transfer Limits",
+      "version": "1",
+      "effective_date": "2026-01-01",
+      "expiry_date": "2026-12-31",
+      "status": "active",
+      "region": [
+        "MY"
+      ],
+      "role_scope": [
+        "RM",
+        "BM",
+        "CC"
+      ],
+      "product": "Transfers",
+      "authority": 3,
+      "source": {
+        "hub": "synthetic-policy-hub",
+        "path": "/regional/my/fd-302"
+      },
+      "supersedes": null,
+      "parent_doc_id": null,
+      "conditions": [],
+      "text": "Malaysia-booked retail customers transfer via DuitNow, limited to MYR 50,000 per transaction. The Singapore FAST transfer limits do not apply in Malaysia.",
+      "hash": "bacbb3a9a785e38a5fa10801f472ec92242bbddeca29a8b6040ea50460425d0b"
     }
   ]
 }

@@ -15,6 +15,7 @@ from .llm import get_llm
 from .models import Employee
 from .pipeline import MOCK_BADGE, run_tree
 from .scenarios import get_scenario, load_scenarios, load_slot_defs
+from .summary import run_summary
 from .tree import STATE_LABELS
 from .verify import SC_REFUTE, SC_VERIFY, SE_VERIFY
 
@@ -59,6 +60,12 @@ def meta():
             {"id": s["id"], "title": s["title"], "employee": s["employee"]} for s in load_scenarios()
         ],
     }
+
+
+@app.get("/api/summary")
+def summary():
+    """Runs every scenario through the real pipeline; labelled as a scripted demo set, not a benchmark."""
+    return run_summary(corpus, get_llm())
 
 
 @app.get("/api/scenarios/{scenario_id}")

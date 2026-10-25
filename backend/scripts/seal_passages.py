@@ -13,7 +13,7 @@ from app.config import DATA_DIR  # noqa: E402
 from app.corpus import compute_hash  # noqa: E402
 
 path = DATA_DIR / "passages.json"
-doc = json.loads(path.read_text(encoding="utf-8"))
+doc = json.loads(path.read_text(encoding="utf-8-sig"))  # tolerate a BOM from Windows editors
 for p in doc["passages"]:
     p["hash"] = compute_hash(p["text"])
 path.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

@@ -17,16 +17,18 @@ def propose_correction(
         return None
     claim = inv.claim
 
+    # the challenging passage that actually drove this outcome (counts toward SC, or raised a conflict)
+    drivers = [e for e in evidence if e.role == "challenges" and e.effect in ("counts", "conflict")]
+    top = max(drivers, key=lambda e: e.score) if drivers else None
+
     scripted_fn = getattr(ctx.llm, "scripted_correction", None)
     if ctx.llm.is_mock and scripted_fn is not None:
-        s = scripted_fn(claim.id, status)
+        s = scripted_fn(claim.id, status, top.passage_id if top else "")
         if s:
             return Correction(text=s["text"], passage_id=s["passage_id"], source="scripted")
 
-    counted = [e for e in evidence if e.role == "challenges" and e.effect in ("counts", "conflict")]
-    if counted:
-        best = max(counted, key=lambda e: e.score)
-        p = ctx.corpus.records[best.passage_id].passage
+    if top is not None:
+        p = ctx.corpus.records[top.passage_id].passage
         return Correction(text=f"Per {p.doc_id} v{p.version}: {p.text}", passage_id=p.passage_id, source="derived")
     if missing_slots and inv.best_support is not None:
         return Correction(

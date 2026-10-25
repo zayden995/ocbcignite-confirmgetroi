@@ -48,7 +48,7 @@ def test_verify_trace_matches_the_decision(tree):
 def test_admin_corpus_lists_every_passage_with_state_for_the_employee():
     r = client.get("/api/admin/corpus", params={"role": "RM", "region": "SG"}).json()
     rows = {p["passage_id"]: p for p in r["passages"]}
-    assert len(rows) == 15
+    assert len(rows) == 16
     assert rows["FD-500#p1"]["approved"] is False and rows["FD-500#p1"]["state"] == "filtered_not_approved"
     assert rows["FD-300#p1"]["state"] == "filtered_expired"
     assert rows["FD-102#p1"]["state"] == "active" and len(rows["FD-102#p1"]["hash"]) == 64
@@ -65,4 +65,4 @@ def test_admin_config_exposes_the_matrix_and_mode():
     assert c["thresholds"] == {"refute_sc": 0.5, "verify_se": 0.85, "verify_sc": 0.15}
     assert len(c["counter_templates"]) == 5
     assert c["demo_date"] == "2026-10-28" and c["llm_mode"] == "mock"
-    assert c["passage_count"] == 15
+    assert c["passage_count"] == 16

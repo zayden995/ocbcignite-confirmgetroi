@@ -41,6 +41,8 @@ class MockLLM:
             return NLIResult(label="neutral", score=0.0)
         return NLIResult.model_validate(entry)
 
-    def scripted_correction(self, claim_id: str, status: str) -> dict | None:
-        """Scripted corrected statement, keyed by claim and outcome (outcomes change when inputs change)."""
-        return self._fx.get("corrections", {}).get(f"{claim_id}|{status}")
+    def scripted_correction(self, claim_id: str, status: str, driver: str = "") -> dict | None:
+        """Scripted corrected statement. Keyed by claim, outcome and the passage that drove the outcome
+        ('' if none): the outcome and its cause change when the employee or inputs change, so must the script."""
+        table = self._fx.get("corrections", {})
+        return table.get(f"{claim_id}|{status}|{driver}") or table.get(f"{claim_id}|{status}")
