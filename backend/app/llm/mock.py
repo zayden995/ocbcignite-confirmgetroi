@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from ..config import DATA_DIR
+from ..errors import NoScriptedFixture
 from ..models import Claim, Extraction, NLIResult, Passage
 
 _FIXTURES = Path(__file__).with_name("fixtures.json")
@@ -27,7 +28,7 @@ class MockLLM:
     def extract(self, question: str, answer: str) -> Extraction:
         sid = self._by_text.get((question.strip(), answer.strip()))
         if sid is None or sid not in self._fx["extract"]:
-            raise LookupError("MOCK LLM has no scripted extraction for this question/answer pair")
+            raise NoScriptedFixture("MOCK LLM has no scripted extraction for this question/answer pair")
         return Extraction.model_validate(self._fx["extract"][sid])
 
     def is_scripted(self, claim: Claim, passage: Passage) -> bool:
@@ -40,5 +41,6 @@ class MockLLM:
             return NLIResult(label="neutral", score=0.0)
         return NLIResult.model_validate(entry)
 
-    def scripted_correction(self, claim_id: str) -> dict | None:
-        return self._fx.get("corrections", {}).get(claim_id)
+    def scripted_correction(self, claim_id: str, status: str) -> dict | None:
+        """Scripted corrected statement, keyed by claim and outcome (outcomes change when inputs change)."""
+        return self._fx.get("corrections", {}).get(f"{claim_id}|{status}")

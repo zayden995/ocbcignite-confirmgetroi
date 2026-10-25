@@ -75,7 +75,10 @@ class Evidence(BaseModel):
     score: float
     counter_query: str | None = None
     # how scoring treated it: counts | conflict | ignored_lower_authority
+    # | not_triggered | needs_input
     effect: str | None = None
+    # for exceptions: the conditions that decide whether it applies to this case
+    trigger_conditions: list[ConditionResult] = Field(default_factory=list)
 
 
 class Claim(BaseModel):
@@ -117,3 +120,109 @@ class Employee(BaseModel):
     role: str
     region: str
     params: dict[str, Any] = Field(default_factory=dict)
+
+
+# --- Proof Tree payload ------------------------------------------------------
+
+
+class Correction(BaseModel):
+    text: str
+    passage_id: str
+    source: Literal["scripted", "derived"]
+
+
+class BaselineCheck(BaseModel):
+    claim_id: str
+    passage_id: str
+    exists: bool
+    entails: bool
+    score: float
+
+
+class Baseline(BaseModel):
+    """Citation-only check: cited passage exists and entails. Never looks for counter-evidence."""
+
+    status: Status
+    checks: list[BaselineCheck]
+
+
+class RootNode(BaseModel):
+    id: str
+    doc_id: str
+    title: str
+    version: str
+    effective_date: date
+    expiry_date: date
+    doc_status: str
+    authority: int
+    source: SourceRef
+    supersedes: str | None
+    parent_doc_id: str | None
+    hash: str
+    hash_ok: bool
+    state: PassageState
+    state_label: str
+    state_detail: str
+    snippet: str
+    conditions: list[Condition]
+    roles: list[str]  # cited | supports | challenges
+
+
+class ClaimNode(BaseModel):
+    id: str
+    text: str
+    status: Status
+    reason: str
+    se: float
+    sc: float
+    failure_types: list[FailureType]
+    cited_passage_ids: list[str]
+    evidence: list[Evidence]
+    conditions: list[ConditionResult]
+    missing_slots: list[str]
+    proposed_correction: Correction | None
+    actions: list[str]
+
+
+class Trunk(BaseModel):
+    id: str = "conclusion"
+    text: str
+    status: Status
+
+
+class Edge(BaseModel):
+    source: str
+    target: str
+    # "cites": the AI cited it, but it gave the claim no usable evidence (e.g. filtered out)
+    kind: Literal["supports", "challenges", "cites", "claim_of", "parent", "supersedes"]
+
+
+class MissingInput(BaseModel):
+    field: str
+    label: str
+    type: str
+    options: list[str] = Field(default_factory=list)
+
+
+class Overall(BaseModel):
+    status: Status
+    reason: str
+
+
+class ProofTree(BaseModel):
+    scenario_id: str
+    title: str
+    demo_date: date
+    llm_mode: str
+    llm_badge: str | None
+    data_label: str
+    employee: Employee
+    question: str
+    answer: str
+    overall: Overall
+    baseline: Baseline
+    roots: list[RootNode]
+    trunk: Trunk
+    claims: list[ClaimNode]
+    edges: list[Edge]
+    missing_inputs: list[MissingInput]
