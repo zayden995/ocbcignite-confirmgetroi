@@ -38,12 +38,10 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     setResult(null);
     setParams({});
     setError(null);
+    // the employee's role and region are kept when they switch questions: the same answer can be
+    // right for one employee and wrong for another, so the profile belongs to the person, not the question
     fetchScenario(id)
-      .then((s) => {
-        setScenario(s);
-        setRole(s.employee.role);
-        setRegion(s.employee.region);
-      })
+      .then(setScenario)
       .catch((e: Error) => setError(e.message));
   }, []);
 
@@ -51,7 +49,11 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     fetchMeta()
       .then((m) => {
         setMeta(m);
-        if (m.scenarios.length) selectScenario(m.scenarios[0].id);
+        if (m.scenarios.length) {
+          selectScenario(m.scenarios[0].id);
+          setRole(m.scenarios[0].employee.role);
+          setRegion(m.scenarios[0].employee.region);
+        }
       })
       .catch((e: Error) => setError(e.message));
   }, [selectScenario]);

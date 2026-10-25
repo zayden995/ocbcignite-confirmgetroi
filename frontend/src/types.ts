@@ -215,7 +215,7 @@ export interface Meta {
   llm_badge: string | null;
   roles: { code: string; label: string }[];
   regions: { code: string; label: string }[];
-  scenarios: { id: string; title: string; employee: { role: string; region: string } }[];
+  scenarios: { id: string; title: string; question: string; employee: { role: string; region: string } }[];
 }
 
 export interface SummaryResult {

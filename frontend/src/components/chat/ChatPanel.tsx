@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useTree } from "../../context/TreeContext";
 import type { ProofTreeResult } from "../../types";
-import { TrustCard } from "./TrustCard";
+import { Composer } from "./Composer";
+import { ProfilePicker } from "./ProfilePicker";
+import { Verdict } from "./Verdict";
 
 function Avatar() {
   return (
@@ -14,27 +16,28 @@ function Avatar() {
   );
 }
 
+const tagOf = (title: string) => title.replace(/^\d+\.\s*/, "").replace(/\s*\(hero\)/, "");
+
+/** The conversation once a question has been asked. */
 export function ChatPanel({
-  result, selectedId, onSelectClaim,
+  askedId, onAsk, onNewChat, result, selectedId, onSelectClaim,
 }: {
+  askedId: string;
+  onAsk: (id: string) => void;
+  onNewChat: () => void;
   result: ProofTreeResult | null;
   selectedId: string | null;
   onSelectClaim: (id: string) => void;
 }) {
-  const { meta, scenario, scenarioId, selectScenario, role, region, setRole, setRegion, run, loading } = useTree();
-  // which scripted question has been "asked" in this conversation
-  const [asked, setAsked] = useState<string | null>(null);
-  const hasAsked = asked !== null && asked === scenarioId;
+  const { meta, scenario, run, loading, role, region } = useTree();
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView?.({ block: "end" });
-  }, [hasAsked, result, loading]);
+  }, [askedId, result, loading]);
 
-  const ask = (id: string) => {
-    selectScenario(id);
-    setAsked(id);
-  };
+  const roleLabel = meta?.roles.find((r) => r.code === role)?.label ?? role;
+  const regionLabel = meta?.regions.find((r) => r.code === region)?.label ?? region;
 
   return (
     <section className="chat" aria-label="Chat with the OCBC assistant">
@@ -43,35 +46,11 @@ export function ChatPanel({
           <strong>OCBC Assistant</strong>
           <span className="chat-sub">Synthetic demo. Answers are scripted.</span>
         </div>
-        <div className="profile">
-          <label>
-            Role
-            <select value={role} onChange={(e) => setRole(e.target.value)}>
-              {meta?.roles.map((r) => (
-                <option key={r.code} value={r.code}>{r.label}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Region
-            <select value={region} onChange={(e) => setRegion(e.target.value)}>
-              {meta?.regions.map((r) => (
-                <option key={r.code} value={r.code}>{r.label}</option>
-              ))}
-            </select>
-          </label>
-        </div>
+        <button className="ghost" onClick={onNewChat}>New chat</button>
       </div>
 
       <div className="thread">
-        <div className="msg bot">
-          <Avatar />
-          <div className="bubble">
-            Ask me about SteadyGrowth fixed deposits or transfer channels. Choose one of the sample questions below and I'll answer it, then TREE can check my answer.
-          </div>
-        </div>
-
-        {hasAsked && scenario && (
+        {scenario && scenario.id === askedId && (
           <>
             <div className="msg user">
               <div className="bubble">{scenario.question}</div>
@@ -85,9 +64,7 @@ export function ChatPanel({
                     <button className="run" onClick={run} disabled={loading}>
                       {loading ? "Running…" : "Run TREE"}
                     </button>
-                    <span className="hint">
-                      Checks this answer as a {meta?.roles.find((r) => r.code === role)?.label ?? role} in {meta?.regions.find((r) => r.code === region)?.label ?? region}.
-                    </span>
+                    <span className="hint">Checks this answer for a {roleLabel} in {regionLabel}.</span>
                   </div>
                 )}
               </div>
@@ -95,22 +72,20 @@ export function ChatPanel({
           </>
         )}
 
-        {result && hasAsked && <TrustCard result={result} selectedId={selectedId} onSelectClaim={onSelectClaim} />}
+        {result && scenario?.id === askedId && <Verdict result={result} selectedId={selectedId} onSelectClaim={onSelectClaim} />}
         <div ref={endRef} />
       </div>
 
       <div className="composer">
-        <div className="suggest" role="group" aria-label="Sample questions">
+        <ProfilePicker />
+        <div className="suggest" role="group" aria-label="Other sample questions">
           {meta?.scenarios.map((s) => (
-            <button key={s.id} className={`suggest-chip${s.id === asked ? " on" : ""}`} onClick={() => ask(s.id)}>
-              {s.title}
+            <button key={s.id} className={`suggest-chip${s.id === askedId ? " on" : ""}`} onClick={() => onAsk(s.id)}>
+              {tagOf(s.title)}
             </button>
           ))}
         </div>
-        <div className="composer-input" aria-disabled>
-          <input disabled placeholder="Demo mode: pick a sample question above" aria-label="Message (disabled in demo)" />
-          <button disabled className="send" aria-label="Send">➤</button>
-        </div>
+        <Composer onAsk={onAsk} placeholder="Ask another question…" />
       </div>
     </section>
   );

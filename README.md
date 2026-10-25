@@ -29,12 +29,18 @@ Tests: `cd backend; .venv\Scripts\python.exe -m pytest -q`
 
 ## Two views
 
-- **Employee** (`http://localhost:5173/`): a chat. Pick a sample question, read the AI's answer, press
-  **Run TREE**. You get a plain-language trust card (citation-only check vs TREE, claim by claim,
-  suggested correction) and the **Proof Tree**: an illustrated tree where each branch is a claim and
-  its colour is the claim's status (green Verified, amber Unresolved, red Refuted), the trunk is the
-  AI's conclusion, and the roots are the source passages. Hover anything for status details; click a
-  branch for the full breakdown.
+- **Employee** (`http://localhost:5173/`): opens like a new chat ("Good morning, how may I help you?").
+  Type one of the sample questions (this demo only knows those) or tap a starter, read the AI's
+  answer, press **Run TREE**. The result opens with one large verdict: the label (Verified,
+  Unresolved or Refuted), why in one sentence, and what to say or do instead. Claim-by-claim
+  detail is folded away under it. Beside it is the **Proof Tree**: an illustrated tree where each branch
+  is a claim and its colour is the claim's status (green Verified, amber Unresolved, red Refuted), the
+  trunk is the AI's conclusion, and the roots are the source passages. Hover anything for status
+  details; click a branch for the full breakdown.
+- **Role and region** ("Asking as ... in ...") say who is asking. Policies are written for specific
+  roles and regions, and TREE checks that an answer relies on ones that apply to *that* employee. Try
+  scenario 5 as a Relationship Manager in Singapore (Verified), a Call Centre Agent (Unresolved: the
+  bonus policy is not written for that role) and a Malaysia employee (Refuted: Malaysia has no bonus).
 - **Admin** (`http://localhost:5173/#/admin`): a read-only backend inspector with a run summary, a
   per-claim pipeline trace (every passage considered, every counter-query and what it found, the
   matrix decision), the whole corpus with its approved-source and SHA-256 checks, the matrix and
@@ -52,7 +58,9 @@ before a run is `frontend/public/brand/ocbc-tree-slide.png`.
 | 2 | Conflicting documents | FD-200 (1.0% early-withdrawal penalty) | FD-201, equal authority, says no principal penalty. A conflict is a flag, not SC | Unresolved |
 | 3 | Outdated or inapplicable | FD-300 (expired, SGD 200k FAST limit) | FD-301 supersedes it (SGD 100k). As a Malaysia employee, FD-302 says the FAST limits do not apply there | Refuted |
 | 4 | Unsupported assumption | FD-101 | The answer never asked for deposit amount or funding channel | Unresolved |
-| 5 | Clean control | FD-400 | Nothing challenges it | Verified |
+| 5 | Clean control | FD-320 (Priority bonus, RM/BM in Singapore) | Nothing challenges it for an RM in Singapore. The same answer is Unresolved for a Call Centre Agent and Refuted in Malaysia | Verified |
+
+Each scenario is one short question, one short answer and one or two claims.
 
 A citation-only check says **Verified** for all five, because every cited passage exists and says what the
 answer says. Try the variants: scenario 3 with the region set to Malaysia; scenario 4 with
