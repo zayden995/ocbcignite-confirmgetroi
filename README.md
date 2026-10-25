@@ -27,10 +27,29 @@ npm run dev          # open http://localhost:5173  (the dev server proxies /api 
 
 Tests: `cd backend; .venv\Scripts\python.exe -m pytest -q`
 
+## Two views
+
+- **Employee** (`http://localhost:5173/`): a chat. Pick a sample question, read the AI's answer, press
+  **Run TREE**. You get a plain-language trust card (citation-only check vs TREE, claim by claim,
+  suggested correction) and the **Proof Tree**: an illustrated tree where each branch is a claim and
+  its colour is the claim's status (green Verified, amber Unresolved, red Refuted), the trunk is the
+  AI's conclusion, and the roots are the source passages. Hover anything for status details; click a
+  branch for the full breakdown.
+- **Admin** (`http://localhost:5173/#/admin`): a read-only backend inspector with a run summary, a
+  per-claim pipeline trace (every passage considered, every counter-query and what it found, the
+  matrix decision), the whole corpus with its approved-source and SHA-256 checks, the matrix and
+  settings, the structured claim-to-passage graph (React Flow), and the raw JSON payload. There is
+  no login; "Admin" is just a second page in this prototype.
+
+The Proof Tree illustration is custom SVG (a photo cannot change branch colour). The slide image shown
+before a run is `frontend/public/brand/ocbc-tree-slide.png`.
+
 ## Status
 
-Build step 5 of 8: the hero scenario (1. Overlooked exception) works end to end. Scenarios 2-5,
-the all-scenarios summary strip and the "Report missing input" dialog are not built yet.
+Build step 5 (plus the two-view UI revamp): the hero scenario (1. Overlooked exception) works end to
+end. Scenarios 2-5, the all-scenarios summary strip and the "Report missing input" dialog are not
+built yet. Not built on purpose: the reviewer queue, reliability dashboard and cross-answer blast
+radius (the admin view inspects one run; it does not aggregate across runs).
 
 ## What is mocked (honest list)
 

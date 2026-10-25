@@ -170,7 +170,8 @@ function layout(result: ProofTreeResult, selectedId: string | null): { nodes: No
   return { nodes, edges };
 }
 
-export function ProofTree({
+/** Structured claim-to-passage graph (React Flow) for the admin view. The employee view uses the illustrated tree. */
+export function GraphView({
   result, selectedId, onSelectClaim,
 }: {
   result: ProofTreeResult;
@@ -181,7 +182,7 @@ export function ProofTree({
   return (
     <section className="tree-section">
       <div className="tree-head">
-        <h2>Proof Tree</h2>
+        <h2>Claim and passage graph</h2>
         <div className="legend small">
           <span className="swatch ok" /> Verified <span className="swatch bad" /> Refuted{" "}
           <span className="swatch warn" /> Unresolved · click a branch for details

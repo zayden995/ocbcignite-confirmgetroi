@@ -46,6 +46,43 @@ export interface Correction {
   source: "scripted" | "derived";
 }
 
+export interface TraceCandidate {
+  passage_id: string;
+  via: "cited" | "retrieved";
+  state: PassageState | null;
+  retrieval_score: number | null;
+  nli_label: string | null;
+  nli_score: number | null;
+  outcome: string;
+}
+
+export interface TraceHit {
+  passage_id: string;
+  retrieval_score: number;
+  nli_label: string | null;
+  nli_score: number | null;
+  outcome: string;
+}
+
+export interface TraceQuery {
+  template: string;
+  query: string;
+  hits: TraceHit[];
+}
+
+export interface ClaimTrace {
+  investigate: TraceCandidate[];
+  challenge: TraceQuery[];
+  verify: {
+    se: number;
+    sc: number;
+    conflict: boolean;
+    missing_slots: string[];
+    status: Status;
+    reason: string;
+  };
+}
+
 export interface ClaimNodeData {
   id: string;
   text: string;
@@ -60,6 +97,47 @@ export interface ClaimNodeData {
   missing_slots: string[];
   proposed_correction: Correction | null;
   actions: string[];
+  trace: ClaimTrace;
+}
+
+export interface AdminPassage {
+  passage_id: string;
+  doc_id: string;
+  title: string;
+  version: string;
+  effective_date: string;
+  expiry_date: string;
+  status: string;
+  region: string[];
+  role_scope: string[];
+  product: string;
+  authority: number;
+  source: { hub: string; path: string };
+  supersedes: string | null;
+  parent_doc_id: string | null;
+  conditions: Condition[];
+  text: string;
+  hash: string;
+  hash_ok: boolean;
+  approved: boolean;
+  state: PassageState;
+  state_label: string;
+}
+
+export interface AdminCorpus {
+  approved_sources: { hub: string; paths: string[] }[];
+  passages: AdminPassage[];
+}
+
+export interface AdminConfig {
+  demo_date: string;
+  data_label: string;
+  llm_mode: string;
+  llm_badge: string | null;
+  thresholds: { refute_sc: number; verify_se: number; verify_sc: number };
+  counter_templates: string[];
+  passage_count: number;
+  searchable_count: number;
 }
 
 export interface RootData {
