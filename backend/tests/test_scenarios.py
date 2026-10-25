@@ -33,6 +33,17 @@ def test_there_are_five_scenarios():
     assert len(IDS) == 5
 
 
+def test_two_scenarios_have_three_or_four_branches(corpus):
+    counts = {sid: len(run(corpus, sid).claims) for sid in IDS}
+    assert counts == {
+        "s1_overlooked_exception": 3,
+        "s2_conflicting_documents": 2,
+        "s3_outdated_or_inapplicable": 1,
+        "s4_unsupported_assumption": 4,
+        "s5_clean_control": 1,
+    }
+
+
 @pytest.mark.parametrize("sid", IDS)
 def test_overall_matches_the_expected_verdict(corpus, sid):
     tree = run(corpus, sid)
@@ -107,17 +118,19 @@ def test_s3_in_malaysia_the_singapore_policy_is_inapplicable(corpus):
 
 # --- 4. unsupported assumption --------------------------------------------
 
-def test_s4_missing_inputs_make_it_unresolved(corpus):
+def test_s4_missing_inputs_make_one_branch_unresolved(corpus):
     tree = run(corpus, "s4_unsupported_assumption")
-    c1 = claim(tree, "s4.c1")
-    assert [c.status for c in tree.claims] == ["Unresolved"]
-    assert c1.missing_slots == ["deposit_amount", "channel"]
-    assert c1.failure_types == ["unsupported_assumption"]
+    c4 = claim(tree, "s4.c4")
+    # four branches: the three plain facts hold, only the one that assumes this deposit's details is open
+    assert [c.status for c in tree.claims] == ["Verified", "Verified", "Verified", "Unresolved"]
+    assert tree.overall.status == "Unresolved"
+    assert c4.missing_slots == ["deposit_amount", "channel"]
+    assert c4.failure_types == ["unsupported_assumption"]
     assert [m.field for m in tree.missing_inputs] == ["deposit_amount", "channel"]
     assert next(m for m in tree.missing_inputs if m.field == "channel").options  # a select with choices
     # the exception cannot be judged without the channel, so it must not score
-    assert next(e for e in c1.evidence if e.passage_id == "FD-102#p1").effect == "needs_input"
-    assert c1.sc == 0.0
+    assert next(e for e in c4.evidence if e.passage_id == "FD-102#p1").effect == "needs_input"
+    assert c4.sc == 0.0
 
 
 @pytest.mark.parametrize(
@@ -130,13 +143,16 @@ def test_s4_missing_inputs_make_it_unresolved(corpus):
     ],
 )
 def test_s4_supplying_inputs_reruns_the_real_conditions(corpus, params, status, failure):
-    c1 = claim(run(corpus, "s4_unsupported_assumption", params=params), "s4.c1")
-    assert (c1.status, c1.failure_types) == (status, failure)
+    tree = run(corpus, "s4_unsupported_assumption", params=params)
+    c4 = claim(tree, "s4.c4")
+    assert (c4.status, c4.failure_types) == (status, failure)
+    # the other three branches never depended on those inputs
+    assert [claim(tree, f"s4.c{i}").status for i in (1, 2, 3)] == ["Verified"] * 3
 
 
 def test_s4_scripted_correction_follows_the_outcome(corpus):
-    small = claim(run(corpus, "s4_unsupported_assumption", params={"deposit_amount": 5000, "channel": "GIRO"}), "s4.c1")
-    fast = claim(run(corpus, "s4_unsupported_assumption", params={"deposit_amount": 20000, "channel": "FAST"}), "s4.c1")
+    small = claim(run(corpus, "s4_unsupported_assumption", params={"deposit_amount": 5000, "channel": "GIRO"}), "s4.c4")
+    fast = claim(run(corpus, "s4_unsupported_assumption", params={"deposit_amount": 20000, "channel": "FAST"}), "s4.c4")
     assert "minimum" in small.proposed_correction.text
     assert "FAST" in fast.proposed_correction.text and fast.proposed_correction.passage_id == "FD-102#p1"
 

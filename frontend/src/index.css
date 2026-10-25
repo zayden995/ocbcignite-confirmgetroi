@@ -173,7 +173,7 @@ select, input { font: inherit; padding: 7px 9px; border: 1px solid var(--line); 
 .svg-id { font: 700 15px var(--font); fill: var(--ink); }
 .svg-state { font: 600 13px var(--font); }
 .svg-state.ok { fill: #1b5e20; } .svg-state.bad { fill: var(--red-deep); } .svg-state.muted { fill: #5b6672; }
-.svg-note { font: 600 13px var(--font); fill: #475569; }
+.svg-note { font: 600 13px var(--font); fill: #475569; paint-order: stroke; stroke: #fff; stroke-width: 5px; stroke-linejoin: round; }
 
 .tcard { height: 100%; background: #fff; border: 3px solid var(--muted); border-radius: 12px; padding: 7px 10px 6px; display: flex; flex-direction: column; gap: 3px; overflow: hidden; cursor: pointer; font-family: var(--font); transition: transform 0.12s, opacity 0.15s; }
 .tcard:hover { transform: translateY(-2px); }
@@ -182,8 +182,8 @@ select, input { font: inherit; padding: 7px 9px; border: 1px solid var(--line); 
 .tcard.warn { border-color: var(--amber); background: #fffdf3; }
 .tcard.selected { box-shadow: 0 0 0 5px rgba(29, 78, 216, 0.35); }
 .tcard-head { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
-.tcard-text { font-size: 14.5px; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.tcard.compact .tcard-text { font-size: 13px; -webkit-line-clamp: 2; }
+.tcard-text { font-size: 16px; line-height: 1.22; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.tcard.compact .tcard-text { font-size: 14.5px; }
 .tcard-meta { margin-top: auto; font-size: 12px; color: var(--muted); }
 .tplate { height: 100%; background: #fff; border: 3px solid var(--muted); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; justify-content: center; gap: 4px; font-family: var(--font); }
 .tplate.ok { border-color: var(--green); } .tplate.bad { border-color: var(--red); } .tplate.warn { border-color: var(--amber); }

@@ -7,7 +7,7 @@
       "expected_overall": "Refuted",
       "employee": { "role": "RM", "region": "SG" },
       "question": "A customer wants to put SGD 20,000 into a SteadyGrowth 12-month deposit via FAST. What rate do I quote?",
-      "ai_answer": "Quote 3.20% p.a. The board rate applies to FAST deposits. [Sources: FD-101, FD-500]",
+      "ai_answer": "Quote 3.20% p.a. SGD 20,000 meets the minimum, and the board rate applies to FAST deposits. [Sources: FD-101, FD-500]",
       "citations": ["FD-101#p1", "FD-101#p2", "FD-500#p1"]
     },
     {
@@ -33,9 +33,9 @@
       "title": "4. Unsupported assumption",
       "expected_overall": "Unresolved",
       "employee": { "role": "RM", "region": "SG" },
-      "question": "What rate will my customer get on a SteadyGrowth 12-month deposit?",
-      "ai_answer": "3.20% p.a. [Source: FD-101]",
-      "citations": ["FD-101#p2"]
+      "question": "What can I tell my customer about a SteadyGrowth 12-month deposit?",
+      "ai_answer": "Quote 3.20% p.a. A 12-month tenor is available, the minimum is SGD 1,000, and this deposit earns the board rate. [Sources: FD-101, FD-400]",
+      "citations": ["FD-101#p1", "FD-101#p2", "FD-400#p1"]
     },
     {
       "id": "s5_clean_control",

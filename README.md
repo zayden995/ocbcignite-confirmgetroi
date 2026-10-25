@@ -60,7 +60,9 @@ before a run is `frontend/public/brand/ocbc-tree-slide.png`.
 | 4 | Unsupported assumption | FD-101 | The answer never asked for deposit amount or funding channel | Unresolved |
 | 5 | Clean control | FD-320 (Priority bonus, RM/BM in Singapore) | Nothing challenges it for an RM in Singapore. The same answer is Unresolved for a Call Centre Agent and Refuted in Malaysia | Verified |
 
-Each scenario is one short question, one short answer and one or two claims.
+Each scenario is one short question and one short answer. Most have one or two claims (branches);
+scenario 1 has three (two green, one red) and scenario 4 has four (three green, one amber) so the tree
+shows a fuller canopy.
 
 A citation-only check says **Verified** for all five, because every cited passage exists and says what the
 answer says. Try the variants: scenario 3 with the region set to Malaysia; scenario 4 with
