@@ -25,7 +25,19 @@ npm install
 npm run dev          # open http://localhost:5173  (the dev server proxies /api to :8000)
 ```
 
-Tests: `cd backend; .venv\Scripts\python.exe -m pytest -q`
+Tests: `cd backend; .venv\Scripts\python.exe -m pip install -r requirements-dev.txt; .venv\Scripts\python.exe -m pytest -q`
+(`requirements.txt` is what the deployed app needs; `requirements-dev.txt` adds the test packages.)
+
+## Deploy to Vercel
+
+The repo is set up for [Vercel Services](https://vercel.com/docs/services) (Beta): one project, two
+services. `vercel.json` builds `frontend/` (Vite) and `backend/` (FastAPI, `app.main:app`) and routes
+`/api/*` to the backend and everything else to the frontend, so the app calls `/api` on its own domain
+and needs no CORS or URL settings. The backend reads its synthetic data from `backend/data/`, which is
+why that folder lives inside `backend/`. It runs in MOCK mode by default; do not set
+`TREE_LLM_PROVIDER` unless a real adapter has been implemented.
+
+To try the same routing locally: `npx vercel dev --local` (then open http://localhost:3000).
 
 ## Two views
 

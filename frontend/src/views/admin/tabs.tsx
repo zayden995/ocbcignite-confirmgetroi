@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { fetchAdminConfig, fetchAdminCorpus } from "../../api/client";
 import { FailureChips, StatePill, StatusBadge, shortHash } from "../../components/common";
 import { useTree } from "../../context/TreeContext";
