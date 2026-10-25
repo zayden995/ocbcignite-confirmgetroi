@@ -47,6 +47,37 @@ class Passage(BaseModel):
     hash: str | None = None
 
 
+Status = Literal["Verified", "Refuted", "Unresolved"]
+
+FailureType = Literal[
+    "overlooked_exception",
+    "conflicting_documents",
+    "outdated_or_inapplicable",
+    "unsupported_assumption",
+]
+
+
+class ConditionResult(BaseModel):
+    field: str
+    op: str
+    expected: Any
+    actual: Any = None
+    result: Literal["pass", "fail", "missing"]
+    passage_id: str | None = None
+
+
+class Evidence(BaseModel):
+    """A claim<->passage link: the NLI verdict plus how it was used."""
+
+    passage_id: str
+    role: Literal["supports", "challenges"]
+    label: Literal["entails", "contradicts", "neutral"]
+    score: float
+    counter_query: str | None = None
+    # how scoring treated it: counts | conflict | ignored_lower_authority
+    effect: str | None = None
+
+
 class IngestedPassage(BaseModel):
     """A passage plus the result of ingestion-time checks."""
 
