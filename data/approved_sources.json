@@ -1,0 +1,6 @@
+{
+  "_label": "Synthetic - not real OCBC policy",
+  "approved": [
+    { "hub": "synthetic-policy-hub", "paths": ["/deposits/", "/transfers/", "/regional/sg/", "/regional/my/"] }
+  ]
+}

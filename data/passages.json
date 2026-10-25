@@ -1,0 +1,459 @@
+{
+  "_label": "Synthetic - not real OCBC policy",
+  "_note": "Fictional SteadyGrowth fixed-deposit and transfer-channel policy. The 'hash' fields are a SHA-256 manifest written by backend/scripts/seal_passages.py; ingestion recomputes and compares them.",
+  "passages": [
+    {
+      "passage_id": "FD-100#p1",
+      "doc_id": "FD-100",
+      "title": "SteadyGrowth FD Rate Schedule (2025)",
+      "version": "2",
+      "effective_date": "2025-01-01",
+      "expiry_date": "2025-12-31",
+      "status": "superseded",
+      "region": [
+        "SG",
+        "MY"
+      ],
+      "role_scope": [
+        "RM",
+        "BM",
+        "CC"
+      ],
+      "product": "SteadyGrowth",
+      "authority": 3,
+      "source": {
+        "hub": "synthetic-policy-hub",
+        "path": "/deposits/rates/fd-100"
+      },
+      "supersedes": null,
+      "parent_doc_id": null,
+      "conditions": [],
+      "text": "SteadyGrowth 12-month fixed deposit board rate is 3.00% p.a. for deposits of SGD 10,000 or more funded via electronic channels.",
+      "hash": "bee9229901fcf019bcb586f2097dc8c3b66799280900f206e7a9f5bf71fdd524"
+    },
+    {
+      "passage_id": "FD-101#p1",
+      "doc_id": "FD-101",
+      "title": "SteadyGrowth FD Rate Schedule (2026)",
+      "version": "3",
+      "effective_date": "2026-01-01",
+      "expiry_date": "2026-12-31",
+      "status": "active",
+      "region": [
+        "SG",
+        "MY"
+      ],
+      "role_scope": [
+        "RM",
+        "BM",
+        "CC"
+      ],
+      "product": "SteadyGrowth",
+      "authority": 3,
+      "source": {
+        "hub": "synthetic-policy-hub",
+        "path": "/deposits/rates/fd-101"
+      },
+      "supersedes": "FD-100",
+      "parent_doc_id": null,
+      "conditions": [],
+      "text": "SteadyGrowth 12-month fixed deposit board rate is 3.20% p.a. from 1 January 2026. The standard rate for the same tenor is 2.60% p.a.",
+      "hash": "8c024098813378de848873bd90a859d91aa4450d5260f2b1c0b845afe501c919"
+    },
+    {
+      "passage_id": "FD-101#p2",
+      "doc_id": "FD-101",
+      "title": "SteadyGrowth FD Rate Schedule (2026)",
+      "version": "3",
+      "effective_date": "2026-01-01",
+      "expiry_date": "2026-12-31",
+      "status": "active",
+      "region": [
+        "SG",
+        "MY"
+      ],
+      "role_scope": [
+        "RM",
+        "BM",
+        "CC"
+      ],
+      "product": "SteadyGrowth",
+      "authority": 3,
+      "source": {
+        "hub": "synthetic-policy-hub",
+        "path": "/deposits/rates/fd-101"
+      },
+      "supersedes": "FD-100",
+      "parent_doc_id": null,
+      "conditions": [
+        {
+          "field": "deposit_amount",
+          "op": ">=",
+          "value": 10000
+        },
+        {
+          "field": "tenor_months",
+          "op": "in",
+          "value": [
+            12
+          ]
+        }
+      ],
+      "text": "The 3.20% p.a. board rate applies to SteadyGrowth 12-month deposits of SGD 10,000 or more funded via electronic channels such as GIRO.",
+      "hash": "d7d1bada9562bf36e044c851da765269e8eb9b2900023cdea2cacd1a11bd27f6"
+    },
+    {
+      "passage_id": "FD-102#p1",
+      "doc_id": "FD-102",
+      "title": "Amendment 1 to FD-101: FAST-Funded Deposits",
+      "version": "1",
+      "effective_date": "2026-03-01",
+      "expiry_date": "2026-12-31",
+      "status": "active",
+      "region": [
+        "SG",
+        "MY"
+      ],
+      "role_scope": [
+        "RM",
+        "BM",
+        "CC"
+      ],
+      "product": "SteadyGrowth",
+      "authority": 3,
+      "source": {
+        "hub": "synthetic-policy-hub",
+        "path": "/deposits/rates/fd-102"
+      },
+      "supersedes": null,
+      "parent_doc_id": "FD-101",
+      "conditions": [
+        {
+          "field": "channel",
+          "op": "in",
+          "value": [
+            "FAST"
+          ]
+        }
+      ],
+      "text": "Exception to the SteadyGrowth board rate: deposits funded via FAST transfer are not eligible for the 3.20% p.a. board rate and earn the 2.60% p.a. standard rate instead. This exception overrides the general rule in FD-101 for FAST-funded deposits.",
+      "hash": "78eaa2ebd29dd45e0f0ac6836cc23fcc02aca9ef037dbc57778c451cd9ee17fb"
+    },
+    {
+      "passage_id": "FD-200#p1",
+      "doc_id": "FD-200",
+      "title": "SteadyGrowth Product Terms",
+      "version": "2",
+      "effective_date": "2026-02-01",
+      "expiry_date": "2027-01-31",
+      "status": "active",
+      "region": [
+        "SG",
+        "MY"
+      ],
+      "role_scope": [
+        "RM",
+        "BM",
+        "CC"
+      ],
+      "product": "SteadyGrowth",
+      "authority": 2,
+      "source": {
+        "hub": "synthetic-policy-hub",
+        "path": "/deposits/terms/fd-200"
+      },
+      "supersedes": null,
+      "parent_doc_id": null,
+      "conditions": [],
+      "text": "Early withdrawal of a SteadyGrowth fixed deposit before maturity incurs a penalty of 1.0% of the principal amount.",
+      "hash": "1771ecea03d12682431ca0a3db2a61b8d43b236cf2c666ba793720d8aa66d2bf"
+    },
+    {
+      "passage_id": "FD-201#p1",
+      "doc_id": "FD-201",
+      "title": "Branch Operations Manual: FD Servicing",
+      "version": "1",
+      "effective_date": "2026-04-15",
+      "expiry_date": "2027-04-14",
+      "status": "active",
+      "region": [
+        "SG",
+        "MY"
+      ],
+      "role_scope": [
+        "RM",
+        "BM",
+        "CC"
+      ],
+      "product": "SteadyGrowth",
+      "authority": 2,
+      "source": {
+        "hub": "synthetic-policy-hub",
+        "path": "/deposits/operations/fd-201"
+      },
+      "supersedes": null,
+      "parent_doc_id": null,
+      "conditions": [],
+      "text": "When a SteadyGrowth fixed deposit is withdrawn early before maturity, no penalty is charged on the principal amount. Accrued interest is forfeited instead.",
+      "hash": "06482316140cbbc236a38807f3a51f16f776bdb9d25d4ec5297d78a053b25c81"
+    },
+    {
+      "passage_id": "FD-300#p1",
+      "doc_id": "FD-300",
+      "title": "FAST Transfer Limits (Retail) v1",
+      "version": "1",
+      "effective_date": "2025-01-01",
+      "expiry_date": "2026-06-30",
+      "status": "superseded",
+      "region": [
+        "SG",
+        "MY"
+      ],
+      "role_scope": [
+        "RM",
+        "BM",
+        "CC"
+      ],
+      "product": "Transfers",
+      "authority": 3,
+      "source": {
+        "hub": "synthetic-policy-hub",
+        "path": "/transfers/limits/fd-300"
+      },
+      "supersedes": null,
+      "parent_doc_id": null,
+      "conditions": [],
+      "text": "FAST transfers for retail customers are limited to SGD 200,000 per transaction.",
+      "hash": "7474f301b7f80c35e49151e412ea817af1eab80ac3024894b5b839e0b551b567"
+    },
+    {
+      "passage_id": "FD-301#p1",
+      "doc_id": "FD-301",
+      "title": "FAST Transfer Limits (Retail) v2",
+      "version": "2",
+      "effective_date": "2026-07-01",
+      "expiry_date": "2027-06-30",
+      "status": "active",
+      "region": [
+        "SG",
+        "MY"
+      ],
+      "role_scope": [
+        "RM",
+        "BM",
+        "CC"
+      ],
+      "product": "Transfers",
+      "authority": 3,
+      "source": {
+        "hub": "synthetic-policy-hub",
+        "path": "/transfers/limits/fd-301"
+      },
+      "supersedes": "FD-300",
+      "parent_doc_id": null,
+      "conditions": [],
+      "text": "Effective 1 July 2026, FAST transfers for retail customers are limited to SGD 100,000 per transaction. This replaces the previous SGD 200,000 limit.",
+      "hash": "3cb4e6e9b38a751c7d479e9c7b9bcbe11bb3f94361645e2a5485f0f0efbb7dc2"
+    },
+    {
+      "passage_id": "FD-320#p1",
+      "doc_id": "FD-320",
+      "title": "Singapore Relationship Bonus Rate",
+      "version": "1",
+      "effective_date": "2026-01-01",
+      "expiry_date": "2026-12-31",
+      "status": "active",
+      "region": [
+        "SG"
+      ],
+      "role_scope": [
+        "RM",
+        "BM"
+      ],
+      "product": "SteadyGrowth",
+      "authority": 2,
+      "source": {
+        "hub": "synthetic-policy-hub",
+        "path": "/regional/sg/fd-320"
+      },
+      "supersedes": null,
+      "parent_doc_id": null,
+      "conditions": [],
+      "text": "Singapore-booked SteadyGrowth deposits for Priority customers earn an extra 0.10% p.a. relationship bonus rate. Available to Relationship Manager and Branch Manager roles in Singapore only.",
+      "hash": "fc987bb3e92752b84867481556c60b8ae9f7e05c3508f0a7ae71184de40200b0"
+    },
+    {
+      "passage_id": "FD-321#p1",
+      "doc_id": "FD-321",
+      "title": "Malaysia Relationship Bonus Rate",
+      "version": "1",
+      "effective_date": "2026-01-01",
+      "expiry_date": "2026-12-31",
+      "status": "active",
+      "region": [
+        "MY"
+      ],
+      "role_scope": [
+        "RM",
+        "BM",
+        "CC"
+      ],
+      "product": "SteadyGrowth",
+      "authority": 2,
+      "source": {
+        "hub": "synthetic-policy-hub",
+        "path": "/regional/my/fd-321"
+      },
+      "supersedes": null,
+      "parent_doc_id": null,
+      "conditions": [],
+      "text": "Malaysia-booked SteadyGrowth deposits are not eligible for any relationship bonus rate. The Singapore relationship bonus rate does not apply in Malaysia.",
+      "hash": "4b5b766874c8092c5ad51e441e84951a64937d28edef68dd3a613d73bf02f666"
+    },
+    {
+      "passage_id": "FD-400#p1",
+      "doc_id": "FD-400",
+      "title": "SteadyGrowth Placement Rules",
+      "version": "1",
+      "effective_date": "2026-01-01",
+      "expiry_date": "2026-12-31",
+      "status": "active",
+      "region": [
+        "SG",
+        "MY"
+      ],
+      "role_scope": [
+        "RM",
+        "BM",
+        "CC"
+      ],
+      "product": "SteadyGrowth",
+      "authority": 3,
+      "source": {
+        "hub": "synthetic-policy-hub",
+        "path": "/deposits/terms/fd-400"
+      },
+      "supersedes": null,
+      "parent_doc_id": null,
+      "conditions": [],
+      "text": "The minimum placement for a SteadyGrowth fixed deposit is SGD 1,000. Available tenors are 6, 12 and 24 months.",
+      "hash": "977801f0ca3218ec6de4ead6dfacad6abdc76c6e5666b8f8fbc94b30b57bcc31"
+    },
+    {
+      "passage_id": "FD-500#p1",
+      "doc_id": "FD-500",
+      "title": "Colleague Tips (unofficial wiki)",
+      "version": "1",
+      "effective_date": "2026-05-01",
+      "expiry_date": "2027-05-01",
+      "status": "active",
+      "region": [
+        "SG",
+        "MY"
+      ],
+      "role_scope": [
+        "RM",
+        "BM",
+        "CC"
+      ],
+      "product": "SteadyGrowth",
+      "authority": 1,
+      "source": {
+        "hub": "colleague-wiki",
+        "path": "/tips/fd-500"
+      },
+      "supersedes": null,
+      "parent_doc_id": null,
+      "conditions": [],
+      "text": "Unofficial tip: FAST-funded SteadyGrowth deposits do get the full 3.20% p.a. board rate, the amendment memo is wrong.",
+      "hash": "8b4e233fac47f2de03415484bab6c4854800066fbb11bdb8185a7a9742158614"
+    },
+    {
+      "passage_id": "FD-600#p1",
+      "doc_id": "FD-600",
+      "title": "USD Fixed Deposit Rates",
+      "version": "1",
+      "effective_date": "2026-01-01",
+      "expiry_date": "2026-12-31",
+      "status": "active",
+      "region": [
+        "SG",
+        "MY"
+      ],
+      "role_scope": [
+        "RM",
+        "BM",
+        "CC"
+      ],
+      "product": "USD-FD",
+      "authority": 3,
+      "source": {
+        "hub": "synthetic-policy-hub",
+        "path": "/deposits/rates/fd-600"
+      },
+      "supersedes": null,
+      "parent_doc_id": null,
+      "conditions": [],
+      "text": "USD 12-month fixed deposit board rate is 4.10% p.a. for deposits of USD 5,000 or more.",
+      "hash": "ec7f49387e0535ec9cb08e4bf7642a11ccde78656cf3f8632af8d4d8971340b8"
+    },
+    {
+      "passage_id": "FD-601#p1",
+      "doc_id": "FD-601",
+      "title": "GIRO Instruction Setup",
+      "version": "1",
+      "effective_date": "2026-01-01",
+      "expiry_date": "2026-12-31",
+      "status": "active",
+      "region": [
+        "SG",
+        "MY"
+      ],
+      "role_scope": [
+        "RM",
+        "BM",
+        "CC"
+      ],
+      "product": "Transfers",
+      "authority": 2,
+      "source": {
+        "hub": "synthetic-policy-hub",
+        "path": "/transfers/giro/fd-601"
+      },
+      "supersedes": null,
+      "parent_doc_id": null,
+      "conditions": [],
+      "text": "Customers may set up a GIRO instruction through internet banking. GIRO deductions are processed on the fifth business day of the month.",
+      "hash": "ec74b3586c47554312f7f05a8dd28e023dbd26bb99b381d6278a95d756b27494"
+    },
+    {
+      "passage_id": "FD-603#p1",
+      "doc_id": "FD-603",
+      "title": "SteadyGrowth Auto-Rollover",
+      "version": "1",
+      "effective_date": "2026-01-01",
+      "expiry_date": "2026-12-31",
+      "status": "active",
+      "region": [
+        "SG",
+        "MY"
+      ],
+      "role_scope": [
+        "RM",
+        "BM",
+        "CC"
+      ],
+      "product": "SteadyGrowth",
+      "authority": 2,
+      "source": {
+        "hub": "synthetic-policy-hub",
+        "path": "/deposits/terms/fd-603"
+      },
+      "supersedes": null,
+      "parent_doc_id": null,
+      "conditions": [],
+      "text": "Matured SteadyGrowth deposits roll over automatically at the prevailing board rate unless the customer opts out three days before maturity.",
+      "hash": "ed0973bb147bedcad2550d76f57bab7e2e3d46f9dc0d774332296a41deef95a9"
+    }
+  ]
+}

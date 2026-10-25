@@ -1,0 +1,17 @@
+{
+  "_label": "Synthetic - not real OCBC policy",
+  "slots": {
+    "deposit_amount": { "label": "Deposit amount (SGD)", "type": "number" },
+    "tenor_months": { "label": "Tenor (months)", "type": "number" },
+    "channel": { "label": "Funding channel", "type": "select", "options": ["GIRO", "FAST", "CHEQUE", "COUNTER"] }
+  },
+  "roles": [
+    { "code": "RM", "label": "Relationship Manager" },
+    { "code": "BM", "label": "Branch Manager" },
+    { "code": "CC", "label": "Call Centre Agent" }
+  ],
+  "regions": [
+    { "code": "SG", "label": "Singapore" },
+    { "code": "MY", "label": "Malaysia" }
+  ]
+}
