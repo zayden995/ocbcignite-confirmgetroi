@@ -218,6 +218,23 @@ export interface Meta {
   scenarios: { id: string; title: string; employee: { role: string; region: string } }[];
 }
 
+export interface SummaryResult {
+  label: string;
+  llm_badge: string | null;
+  total: number;
+  baseline_correct: number;
+  tree_correct: number;
+  scenarios: {
+    id: string;
+    title: string;
+    expected: Status;
+    baseline: Status;
+    tree: Status;
+    baseline_correct: boolean;
+    tree_correct: boolean;
+  }[];
+}
+
 export interface ScenarioDetail {
   id: string;
   title: string;

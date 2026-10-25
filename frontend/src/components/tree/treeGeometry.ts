@@ -119,7 +119,10 @@ const leafCluster = (rng: () => number, cx: number, cy: number, rx: number, ry: 
     };
   });
 
-const THREAD = { supports: "#2E7D32", challenges: "#C8102E", rejected: "#C8102E", muted: "#7B8794" };
+const THREAD = { supports: "#2E7D32", challenges: "#C8102E", rejected: "#C8102E", muted: "#7B8794", unconfirmed: "#D99A00" };
+
+/** Challenging evidence only counts when scoring used it (not when it was not triggered or needs input). */
+export const isScored = (effect: string | null) => effect === "counts" || effect === "conflict";
 
 export function layoutTree(result: ProofTreeResult): TreeLayout {
   const W = 1000;
@@ -199,8 +202,13 @@ export function layoutTree(result: ProofTreeResult): TreeLayout {
 
     const filtered = root.state !== "active";
     const threads: RootGeo["threads"] = [];
-    if (root.roles.includes("supports") && !filtered) threads.push({ color: THREAD.supports, dx: 0 });
-    if (root.roles.includes("challenges") && !filtered) threads.push({ color: THREAD.challenges, dx: 0 });
+    const ev = result.claims.flatMap((c) => c.evidence.filter((e) => e.passage_id === root.id));
+    const scoresAsChallenge = ev.some((e) => e.role === "challenges" && isScored(e.effect));
+    const unconfirmed = ev.some((e) => e.role === "challenges" && !isScored(e.effect));
+    if (ev.some((e) => e.role === "supports") && !filtered) threads.push({ color: THREAD.supports, dx: 0 });
+    if (scoresAsChallenge && !filtered) threads.push({ color: THREAD.challenges, dx: 0 });
+    // an exception that does not apply here, or cannot be judged yet, is not drawn as a live challenge
+    if (unconfirmed && !scoresAsChallenge && !filtered) threads.push({ color: THREAD.unconfirmed, dash: "6 6", dx: 0 });
     if (filtered) {
       threads.push({ color: root.state === "filtered_not_approved" ? THREAD.rejected : THREAD.muted, dash: "6 6", dx: 0 });
     }

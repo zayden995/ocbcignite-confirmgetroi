@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState, type KeyboardEvent, type PointerEvent, type SVGProps } from "react";
 import type { ClaimNodeData, ProofTreeResult, RootData } from "../../types";
 import { FailureChips, StatePill, StatusBadge, STATUS_CLASS, fmtValue, shortHash } from "../common";
-import { BARK, STATUS_PALETTE, layoutTree, linkPath, type BranchGeo, type Leaf, type RootGeo } from "./treeGeometry";
+import { BARK, STATUS_PALETTE, isScored, layoutTree, linkPath, type BranchGeo, type Leaf, type RootGeo } from "./treeGeometry";
 
 type Hover = { kind: "claim" | "root" | "trunk"; id: string; x: number; y: number } | null;
 
@@ -142,7 +142,9 @@ export function TreeIllustration({
           const g = rootById.get(l.source);
           const b = branchById.get(l.target);
           if (!g || !b) return null;
-          const color = l.kind === "supports" ? "#2E7D32" : l.kind === "challenges" ? "#C8102E" : "#6B7280";
+          const effect = b.claim.evidence.find((e) => e.passage_id === l.source && e.role === l.kind)?.effect ?? null;
+          const live = l.kind === "challenges" && isScored(effect);
+          const color = l.kind === "supports" ? "#2E7D32" : live ? "#C8102E" : l.kind === "challenges" ? "#D99A00" : "#6B7280";
           const to = { x: b.center.x, y: b.center.y + layout.cardH / 2 };
           return (
             <g key={i} pointerEvents="none">
@@ -182,7 +184,7 @@ export function TreeIllustration({
 
         {/* trunk plate */}
         <line x1={layout.W / 2 + 34} y1={layout.trunkTop + 82} x2={layout.W / 2 + 74} y2={layout.trunkTop + 82} stroke={BARK} strokeWidth={4} strokeLinecap="round" />
-        <foreignObject x={layout.W / 2 + 74} y={layout.trunkTop + 30} width={262} height={106}>
+        <foreignObject x={layout.W / 2 + 74} y={layout.trunkTop + 14} width={270} height={132}>
           <div
             className={`tplate ${STATUS_CLASS[result.overall.status]}`}
             tabIndex={0}
@@ -202,6 +204,7 @@ export function TreeIllustration({
         <span><i className="sw bad" />Refuted branch</span>
         <span><i className="th ok" />supports</span>
         <span><i className="th bad" />challenges</span>
+        <span><i className="th warn" />exception not confirmed</span>
         <span><i className="th muted" />filtered out</span>
       </div>
 

@@ -44,12 +44,35 @@ Tests: `cd backend; .venv\Scripts\python.exe -m pytest -q`
 The Proof Tree illustration is custom SVG (a photo cannot change branch colour). The slide image shown
 before a run is `frontend/public/brand/ocbc-tree-slide.png`.
 
+## The five scenarios
+
+| # | Scenario | The AI cites | What TREE finds | Verdict |
+|---|---|---|---|---|
+| 1 | Overlooked exception (hero) | FD-101 (general rate rule) | FD-102 amends it: FAST-funded deposits are excluded | Refuted |
+| 2 | Conflicting documents | FD-200 (1.0% early-withdrawal penalty) | FD-201, equal authority, says no principal penalty. A conflict is a flag, not SC | Unresolved |
+| 3 | Outdated or inapplicable | FD-300 (expired, SGD 200k FAST limit) | FD-301 supersedes it (SGD 100k). As a Malaysia employee, FD-302 says the FAST limits do not apply there | Refuted |
+| 4 | Unsupported assumption | FD-101 | The answer never asked for deposit amount or funding channel | Unresolved |
+| 5 | Clean control | FD-400 | Nothing challenges it | Verified |
+
+A citation-only check says **Verified** for all five, because every cited passage exists and says what the
+answer says. Try the variants: scenario 3 with the region set to Malaysia; scenario 4 with
+`deposit_amount` / `channel` supplied through `POST /api/verify` (`params`), for example 5000 + GIRO
+refutes it (below the minimum), 20000 + GIRO verifies it (the FAST exception is not triggered), and
+20000 + FAST refutes it. The employee UI has no input form for this yet.
+
+The summary strip on the employee page ("Run all 5 scenarios", `GET /api/summary`) runs every scenario
+through the real pipeline and compares the citation-only check with TREE against each scenario's expected
+verdict (1 of 5 vs 5 of 5). It is labelled **Scripted demo set, not a benchmark**: the scenarios were
+written to contain these failures and the model outputs are scripted, so it illustrates the pipeline
+and is not a measured accuracy.
+
 ## Status
 
-Build step 5 (plus the two-view UI revamp): the hero scenario (1. Overlooked exception) works end to
-end. Scenarios 2-5, the all-scenarios summary strip and the "Report missing input" dialog are not
-built yet. Not built on purpose: the reviewer queue, reliability dashboard and cross-answer blast
-radius (the admin view inspects one run; it does not aggregate across runs).
+Build step 6 (plus the two-view UI revamp): all five scenarios, the Malaysia variant of scenario 3, and
+the summary strip work end to end. Still to do: the "Report missing input" dialog in the employee UI
+(the backend already re-runs with supplied inputs), and the final README pass. Not built on purpose:
+the reviewer queue, reliability dashboard and cross-answer blast radius (the admin view inspects one
+run; it does not aggregate across runs).
 
 ## What is mocked (honest list)
 

@@ -1,4 +1,4 @@
-import type { AdminConfig, AdminCorpus, Meta, ProofTreeResult, ScenarioDetail } from "../types";
+import type { AdminConfig, AdminCorpus, Meta, ProofTreeResult, ScenarioDetail, SummaryResult } from "../types";
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
@@ -22,6 +22,8 @@ export const fetchAdminCorpus = (role: string, region: string) =>
   request<AdminCorpus>(`/api/admin/corpus?role=${encodeURIComponent(role)}&region=${encodeURIComponent(region)}`);
 
 export const fetchAdminConfig = () => request<AdminConfig>("/api/admin/config");
+
+export const fetchSummary = () => request<SummaryResult>("/api/summary");
 
 export const verify = (body: {
   scenario_id: string;
