@@ -7,11 +7,16 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from . import config
-from .corpus import load_corpus
+from .challenge import COUNTER_TEMPLATES
+from .corpus import load_approved_sources, load_corpus
 from .errors import NoScriptedFixture, ScenarioNotFound
+from .filters import passage_state
 from .llm import get_llm
+from .models import Employee
 from .pipeline import MOCK_BADGE, run_tree
 from .scenarios import get_scenario, load_scenarios, load_slot_defs
+from .tree import STATE_LABELS
+from .verify import SC_REFUTE, SC_VERIFY, SE_VERIFY
 
 app = FastAPI(title="OCBC TREE (prototype, synthetic data)")
 corpus = load_corpus()
@@ -62,11 +67,52 @@ def scenario(scenario_id: str):
     return {k: s[k] for k in ("id", "title", "question", "ai_answer", "employee", "citations")}
 
 
+def _check_employee(role: str, region: str) -> None:
+    defs = load_slot_defs()
+    if role not in {r["code"] for r in defs["roles"]}:
+        raise HTTPException(422, f"unknown role '{role}'")
+    if region not in {r["code"] for r in defs["regions"]}:
+        raise HTTPException(422, f"unknown region '{region}'")
+
+
+@app.get("/api/admin/corpus")
+def admin_corpus(role: str = "RM", region: str = "SG"):
+    """Every ingested passage with its ingestion checks and its state for this employee (read-only)."""
+    _check_employee(role, region)
+    emp = Employee(role=role, region=region)
+    return {
+        "employee": emp,
+        "approved_sources": load_approved_sources(),
+        "passages": [
+            {
+                **rec.passage.model_dump(mode="json", exclude={"hash"}),
+                "hash": rec.computed_hash,
+                "hash_ok": rec.hash_ok,
+                "approved": rec.approved,
+                "state": passage_state(rec, emp, config.DEMO_DATE),
+                "state_label": STATE_LABELS[passage_state(rec, emp, config.DEMO_DATE)],
+            }
+            for rec in corpus.records.values()
+        ],
+    }
+
+
+@app.get("/api/admin/config")
+def admin_config():
+    llm = get_llm()
+    return {
+        "demo_date": config.DEMO_DATE.isoformat(),
+        "data_label": config.DATA_LABEL,
+        "llm_mode": "mock" if llm.is_mock else config.LLM_PROVIDER,
+        "llm_badge": MOCK_BADGE if llm.is_mock else None,
+        "thresholds": {"refute_sc": SC_REFUTE, "verify_se": SE_VERIFY, "verify_sc": SC_VERIFY},
+        "counter_templates": COUNTER_TEMPLATES,
+        "passage_count": len(corpus.records),
+        "searchable_count": len(corpus.searchable()),
+    }
+
+
 @app.post("/api/verify")
 def verify(req: VerifyRequest):
-    defs = load_slot_defs()
-    if req.role not in {r["code"] for r in defs["roles"]}:
-        raise HTTPException(422, f"unknown role '{req.role}'")
-    if req.region not in {r["code"] for r in defs["regions"]}:
-        raise HTTPException(422, f"unknown region '{req.region}'")
+    _check_employee(req.role, req.region)
     return run_tree(get_scenario(req.scenario_id), req.role, req.region, req.params, llm=get_llm(), corpus=corpus)

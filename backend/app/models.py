@@ -168,6 +168,50 @@ class RootNode(BaseModel):
     roles: list[str]  # cited | supports | challenges
 
 
+class TraceCandidate(BaseModel):
+    """INVESTIGATE: one passage considered as support for a claim."""
+
+    passage_id: str
+    via: Literal["cited", "retrieved"]
+    state: PassageState | None  # None: cited id is not in the corpus at all
+    retrieval_score: float | None = None
+    nli_label: str | None = None
+    nli_score: float | None = None
+    # supports | challenges | neutral | left_for_challenge | not_usable
+    outcome: str
+
+
+class TraceHit(BaseModel):
+    passage_id: str
+    retrieval_score: float
+    nli_label: str | None = None
+    nli_score: float | None = None
+    outcome: str  # challenge | not_contradicting | already_evaluated
+
+
+class TraceQuery(BaseModel):
+    """CHALLENGE: one counter-query template and what it retrieved."""
+
+    template: str
+    query: str
+    hits: list[TraceHit]
+
+
+class VerifyTrace(BaseModel):
+    se: float
+    sc: float
+    conflict: bool
+    missing_slots: list[str]
+    status: Status
+    reason: str
+
+
+class ClaimTrace(BaseModel):
+    investigate: list[TraceCandidate]
+    challenge: list[TraceQuery]
+    verify: VerifyTrace
+
+
 class ClaimNode(BaseModel):
     id: str
     text: str
@@ -182,6 +226,7 @@ class ClaimNode(BaseModel):
     missing_slots: list[str]
     proposed_correction: Correction | None
     actions: list[str]
+    trace: ClaimTrace
 
 
 class Trunk(BaseModel):

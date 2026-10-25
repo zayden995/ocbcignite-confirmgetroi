@@ -12,7 +12,7 @@ from .corpus import Corpus
 from .corrections import propose_correction
 from .investigate import investigate_claim
 from .llm.base import LLM
-from .models import ClaimNode, Employee, Overall, ProofTree, Status, Trunk
+from .models import ClaimNode, ClaimTrace, Employee, Overall, ProofTree, Status, Trunk, VerifyTrace
 from .scenarios import load_slot_defs
 from .tree import build_edges, build_missing_inputs, build_roots
 from .verify import ScoredEvidence, overall_status, score_evidence, verify_claim
@@ -73,6 +73,14 @@ def run_tree(
                 evidence=inv.evidence, conditions=inv.conditions, missing_slots=missing,
                 proposed_correction=propose_correction(decision.status, inv, inv.evidence, missing, ctx),
                 actions=_actions(decision.status, missing),
+                trace=ClaimTrace(
+                    investigate=inv.trace_investigate,
+                    challenge=inv.trace_challenge,
+                    verify=VerifyTrace(
+                        se=scores.se, sc=scores.sc, conflict=scores.conflict, missing_slots=missing,
+                        status=decision.status, reason=decision.reason,
+                    ),
+                ),
             )
         )
 

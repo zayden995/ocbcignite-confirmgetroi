@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 
 from .conditions import evaluate_conditions
 from .context import RunContext
-from .models import Claim, ConditionResult, Evidence, Passage
+from .models import Claim, ConditionResult, Evidence, Passage, TraceCandidate, TraceQuery
 from .retrieval import retrieve
 
 
@@ -22,6 +22,8 @@ class Investigation:
     best_support: Passage | None = None
     conditions: list[ConditionResult] = field(default_factory=list)
     missing_slots: list[str] = field(default_factory=list)
+    trace_investigate: list[TraceCandidate] = field(default_factory=list)
+    trace_challenge: list[TraceQuery] = field(default_factory=list)
 
 
 def _missing(params: dict, name: str) -> bool:
@@ -32,12 +34,18 @@ def _missing(params: dict, name: str) -> bool:
 def investigate_claim(claim: Claim, ctx: RunContext) -> Investigation:
     inv = Investigation(claim)
 
-    cited = [
-        rec.passage
-        for pid in claim.cited_passage_ids
-        if (rec := ctx.corpus.get(pid)) is not None and ctx.state_of(pid) == "active"
-    ]
-    retrieved = [h.passage for h in retrieve(ctx.corpus, claim.text, ctx.employee, ctx.today)]
+    cited: list[Passage] = []
+    for pid in claim.cited_passage_ids:
+        state = ctx.state_of(pid)
+        if state == "active":
+            cited.append(ctx.corpus.records[pid].passage)
+        else:
+            # cited, but filtered (or unknown): it never reaches NLI and gives no support
+            inv.trace_investigate.append(TraceCandidate(passage_id=pid, via="cited", state=state, outcome="not_usable"))
+
+    hits = retrieve(ctx.corpus, claim.text, ctx.employee, ctx.today)
+    retrieval_score = {h.passage.passage_id: h.score for h in hits}
+    retrieved = [h.passage for h in hits]
 
     candidates: dict[str, Passage] = {p.passage_id: p for p in cited + retrieved}
     for pid, p in candidates.items():
@@ -46,13 +54,25 @@ def investigate_claim(claim: Claim, ctx: RunContext) -> Investigation:
         if r.label == "entails":
             inv.evidence.append(Evidence(passage_id=pid, role="supports", label=r.label, score=r.score))
             inv.evaluated.add(pid)
+            outcome = "supports"
         elif r.label == "contradicts" and was_cited:
             # the AI's own citation contradicts it
             inv.evidence.append(Evidence(passage_id=pid, role="challenges", label=r.label, score=r.score))
             inv.evaluated.add(pid)
-        elif was_cited:
-            inv.evaluated.add(pid)
-        # a retrieved-only contradiction is left for the CHALLENGE stage to find with a counter-query
+            outcome = "challenges"
+        elif r.label == "contradicts":
+            # a retrieved-only contradiction is left for the CHALLENGE stage to find with a counter-query
+            outcome = "left_for_challenge"
+        else:
+            if was_cited:
+                inv.evaluated.add(pid)
+            outcome = "neutral"
+        inv.trace_investigate.append(
+            TraceCandidate(
+                passage_id=pid, via="cited" if was_cited else "retrieved", state="active",
+                retrieval_score=retrieval_score.get(pid), nli_label=r.label, nli_score=r.score, outcome=outcome,
+            )
+        )
 
     supports = [e for e in inv.evidence if e.role == "supports"]
     if supports:

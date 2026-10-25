@@ -9,7 +9,7 @@ from __future__ import annotations
 from .conditions import evaluate_conditions
 from .context import RunContext
 from .investigate import Investigation
-from .models import ConditionResult, Evidence, FailureType, Status
+from .models import ConditionResult, Evidence, FailureType, Status, TraceHit, TraceQuery
 from .retrieval import retrieve
 
 COUNTER_TEMPLATES = [
@@ -26,16 +26,26 @@ def challenge_claim(inv: Investigation, ctx: RunContext) -> list[str]:
     claim = inv.claim
     for template in COUNTER_TEMPLATES:
         query = template.format(c=claim.text)
+        trace_hits: list[TraceHit] = []
         for hit in retrieve(ctx.corpus, query, ctx.employee, ctx.today):
             pid = hit.passage.passage_id
             if pid in inv.evaluated:
+                trace_hits.append(TraceHit(passage_id=pid, retrieval_score=hit.score, outcome="already_evaluated"))
                 continue
             inv.evaluated.add(pid)
             r = ctx.nli(claim, hit.passage)
-            if r.label == "contradicts":
+            contradicts = r.label == "contradicts"
+            if contradicts:
                 inv.evidence.append(
                     Evidence(passage_id=pid, role="challenges", label=r.label, score=r.score, counter_query=query)
                 )
+            trace_hits.append(
+                TraceHit(
+                    passage_id=pid, retrieval_score=hit.score, nli_label=r.label, nli_score=r.score,
+                    outcome="challenge" if contradicts else "not_contradicting",
+                )
+            )
+        inv.trace_challenge.append(TraceQuery(template=template, query=query, hits=trace_hits))
     return apply_triggers(inv, ctx)
 
 
