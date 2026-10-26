@@ -49,6 +49,11 @@ To try the same routing locally: `npx vercel dev --local` (then open http://loca
   is a claim and its colour is the claim's status (green Verified, amber Unresolved, red Refuted), the
   trunk is the AI's conclusion, and the roots are the source passages. Hover anything for status
   details; click a branch for the full breakdown.
+- **Report missing input.** When a claim is Unresolved because the answer assumed details nobody gave
+  (scenario 4: deposit amount and funding channel), the verdict shows a **Report missing input** button.
+  It opens a small form with one field per missing input (number or dropdown, from `missing_inputs`);
+  submitting re-runs TREE with those values, and the verdict notes what you reported, with a **Change**
+  link to try other values.
 - **Role and region** ("Asking as ... in ...") say who is asking. Policies are written for specific
   roles and regions, and TREE checks that an answer relies on ones that apply to *that* employee. Try
   scenario 5 as a Relationship Manager in Singapore (Verified), a Call Centre Agent (Unresolved: the
@@ -78,9 +83,9 @@ shows a fuller canopy.
 
 A citation-only check says **Verified** for all five, because every cited passage exists and says what the
 answer says. Try the variants: scenario 3 with the region set to Malaysia; scenario 4 with
-`deposit_amount` / `channel` supplied through `POST /api/verify` (`params`), for example 5000 + GIRO
-refutes it (below the minimum), 20000 + GIRO verifies it (the FAST exception is not triggered), and
-20000 + FAST refutes it. The employee UI has no input form for this yet.
+`deposit_amount` / `channel` supplied through the **Report missing input** form in the employee chat
+(or `POST /api/verify` with `params`): 5000 + GIRO refutes it (below the minimum), 20000 + GIRO
+verifies it (the FAST exception is not triggered), and 20000 + FAST refutes it.
 
 The summary strip on the employee page ("Run all 5 scenarios", `GET /api/summary`) runs every scenario
 through the real pipeline and compares the citation-only check with TREE against each scenario's expected
@@ -90,11 +95,10 @@ and is not a measured accuracy.
 
 ## Status
 
-Build step 6 (plus the two-view UI revamp): all five scenarios, the Malaysia variant of scenario 3, and
-the summary strip work end to end. Still to do: the "Report missing input" dialog in the employee UI
-(the backend already re-runs with supplied inputs), and the final README pass. Not built on purpose:
-the reviewer queue, reliability dashboard and cross-answer blast radius (the admin view inspects one
-run; it does not aggregate across runs).
+All build steps are done: five scenarios, the Malaysia variant of scenario 3, the role variants of
+scenario 5, the "Report missing input" form, the summary strip and the admin inspector work end to end.
+Not built on purpose: the reviewer queue, reliability dashboard and cross-answer blast radius (the admin
+view inspects one run; it does not aggregate across runs).
 
 ## What is mocked (honest list)
 
@@ -102,6 +106,13 @@ run; it does not aggregate across runs).
   measured. `TREE_LLM_PROVIDER=<name>` selects an adapter stub (`backend/app/llm/provider.py`) that
   raises `NotImplementedError`; there is no silent fallback to mock.
 - **Proposed corrections** in mock mode are scripted text.
+- **SE / SC scores** shown on branches come from the scripted model outputs. They are not measured.
+- **The five scenarios** are a scripted demo set written to contain these failures. The summary strip
+  (1 of 5 citation-only vs 5 of 5 TREE) is labelled "Scripted demo set, not a benchmark" and is not an
+  accuracy figure.
+- **The data** is synthetic: the policy corpus, the approved-source list and the rates are invented and
+  are not real OCBC policy.
+- **The date** is fixed (`DEMO_DATE`, 2026-10-28) so freshness checks give the same answer every run.
 - **Employee identity** is two dropdowns (role, region); there is no SSO.
 - **Corrective-action chips** are stubs.
 - **Retrieval** is keyword overlap plus metadata filters, behind one function (`retrieval.retrieve`).

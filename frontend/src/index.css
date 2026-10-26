@@ -117,6 +117,14 @@ select, input { font: inherit; padding: 7px 9px; border: 1px solid var(--line); 
 .verdict-why { margin-top: 14px; font-size: 15px; line-height: 1.5; }
 .verdict-do { margin-top: 12px; padding: 10px 12px; background: #fff; border: 1px solid var(--line); border-left: 5px solid var(--green-deep); border-radius: 10px; font-size: 15px; line-height: 1.45; }
 .verdict-do p { margin-top: 3px; font-size: 16px; font-weight: 700; }
+.report-missing { margin: 10px 0 0; }
+.missing-form { margin-top: 12px; padding: 12px; background: #fff; border: 1px solid var(--amber); border-radius: 10px; display: flex; flex-direction: column; gap: 10px; }
+.missing-form-intro { font-size: 14px; color: var(--muted); }
+.missing-field { display: flex; flex-direction: column; gap: 4px; }
+.missing-field label { font-size: 13px; font-weight: 700; }
+.missing-form-error { font-size: 13px; color: var(--red-deep); }
+.reported-note { margin-top: 12px; font-size: 13px; color: var(--muted); }
+.link-button { background: none; border: 0; padding: 0; color: var(--green-deep); font-weight: 700; text-decoration: underline; }
 .verdict-compare { margin-top: 12px; font-size: 13px; color: var(--muted); display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
 .verdict-details { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 8px; }
 .verdict-details summary { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--green-deep); padding: 4px 0; }

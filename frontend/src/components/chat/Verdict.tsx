@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useTree } from "../../context/TreeContext";
 import type { ProofTreeResult, Status } from "../../types";
 import { FailureChips, STATUS_CLASS, StatusBadge } from "../common";
 import { HEADLINE, nextStep, plainWhy } from "./chatUtils";
+import { MissingInputForm } from "./MissingInputForm";
 
 const ICON: Record<Status, string> = { Refuted: "✖", Unresolved: "?", Verified: "✔" };
 
@@ -13,11 +15,17 @@ export function Verdict({
   selectedId: string | null;
   onSelectClaim: (id: string) => void;
 }) {
-  const { meta } = useTree();
+  const { meta, params, suppliedInputs } = useTree();
+  const [reporting, setReporting] = useState(false);
   const status = result.overall.status;
   const why = plainWhy(result, meta);
   const step = nextStep(result);
   const agrees = result.baseline.status === status;
+
+  // fields the form covers: what the employee already reported (so they can change it) plus anything still missing
+  const reported = suppliedInputs.filter((d) => params[d.field] !== undefined);
+  const formFields = [...reported, ...result.missing_inputs.filter((m) => !reported.some((d) => d.field === m.field))];
+  const canReport = status === "Unresolved" && result.missing_inputs.length > 0;
 
   return (
     <section className={`verdict ${STATUS_CLASS[status]}`} aria-label="TREE verdict">
@@ -33,7 +41,20 @@ export function Verdict({
       <div className="verdict-do">
         <strong>{step.label}</strong>
         {step.text && <p>{step.text}</p>}
+        {canReport && !reporting && (
+          <button className="ghost-run report-missing" onClick={() => setReporting(true)}>Report missing input</button>
+        )}
       </div>
+
+      {reporting && formFields.length > 0 && <MissingInputForm fields={formFields} onClose={() => setReporting(false)} />}
+
+      {reported.length > 0 && !reporting && (
+        <p className="reported-note">
+          <strong>Based on what you reported: </strong>
+          {reported.map((d) => `${d.label} = ${String(params[d.field])}`).join(", ")}.{" "}
+          <button className="link-button" onClick={() => setReporting(true)}>Change</button>
+        </p>
+      )}
 
       <p className="verdict-compare">
         {agrees ? (
