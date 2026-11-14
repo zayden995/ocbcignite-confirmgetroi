@@ -5,3 +5,8 @@ node_modules/
 dist/
 *.pyc
 .vercel/
+
+.env
+.env.*
+backend/.env
+backend/.env.*
