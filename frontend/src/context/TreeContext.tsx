@@ -41,9 +41,11 @@ interface TreeState {
   setRole: (r: string) => void;
   setRegion: (r: string) => void;
   setParam: (k: string, v: unknown) => void;
-  submitInputs: (values: Record<string, unknown>, defs: MissingInput[]) => Promise<void>;
+  /** Re-runs the active turn with the supplied values. Resolves to an error message, or null on success. */
+  submitInputs: (values: Record<string, unknown>, defs: MissingInput[]) => Promise<string | null>;
   run: (overrideParams?: Record<string, unknown>) => Promise<void>;
-  runForTurn: (turnId: string, overrideParams?: Record<string, unknown>) => Promise<void>;
+  /** Resolves to an error message, or null on success. */
+  runForTurn: (turnId: string, overrideParams?: Record<string, unknown>) => Promise<string | null>;
   setActiveTurnId: (turnId: string) => void;
   clearChat: () => void;
   selectClaim: (id: string | null) => void;
@@ -208,7 +210,8 @@ export function TreeProvider({ children }: { children: ReactNode }) {
       overrideSupplied?: MissingInput[]
     ) => {
       const target = turnsRef.current.find((t) => t.turnId === turnId);
-      if (!target || target.loadingAnswer) return;
+      if (!target) return "No question is selected.";
+      if (target.loadingAnswer) return null;
 
       const currentRole = roleRef.current;
       const currentRegion = regionRef.current;
@@ -292,11 +295,14 @@ export function TreeProvider({ children }: { children: ReactNode }) {
               : t
           )
         );
+        return null;
       } catch (e: unknown) {
-        setError(e instanceof Error ? e.message : String(e));
+        const message = e instanceof Error ? e.message : String(e);
+        setError(message);
         setTurns((prev) =>
           prev.map((t) => (t.turnId === turnId ? { ...t, loadingVerify: false } : t))
         );
+        return message;
       } finally {
         setLoading(false);
       }
@@ -320,7 +326,7 @@ export function TreeProvider({ children }: { children: ReactNode }) {
       const currentActive =
         turnsRef.current.find((t) => t.turnId === activeTurnId) ??
         turnsRef.current[turnsRef.current.length - 1];
-      if (!currentActive) return;
+      if (!currentActive) return "No question is selected.";
       const merged = { ...currentActive.params, ...values };
       const mergedDefs = [
         ...currentActive.suppliedInputs.filter(
@@ -328,7 +334,7 @@ export function TreeProvider({ children }: { children: ReactNode }) {
         ),
         ...defs,
       ];
-      await runForTurn(currentActive.turnId, merged, mergedDefs);
+      return runForTurn(currentActive.turnId, merged, mergedDefs);
     },
     [activeTurnId, runForTurn]
   );

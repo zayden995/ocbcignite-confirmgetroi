@@ -16,7 +16,7 @@ function parseValue(def: MissingInput, raw: string): unknown | null {
 
 /** Lets the employee report what the customer told them, then re-runs TREE with it. */
 export function MissingInputForm({ fields, onClose }: { fields: MissingInput[]; onClose: () => void }) {
-  const { params, rerun, loading } = useTree();
+  const { params, submitInputs, loading } = useTree();
   const [raw, setRaw] = useState<Record<string, string>>(() =>
     Object.fromEntries(fields.map((f) => [f.field, params[f.field] === undefined ? "" : String(params[f.field])])),
   );
@@ -29,7 +29,7 @@ export function MissingInputForm({ fields, onClose }: { fields: MissingInput[]; 
     e.preventDefault();
     if (!ready || loading) return;
     setError(null);
-    const message = await rerun(Object.fromEntries(parsed.map(([f, v]) => [f.field, v])), fields);
+    const message = await submitInputs(Object.fromEntries(parsed.map(([f, v]) => [f.field, v])), fields);
     if (message) setError(message);
     else onClose();
   };

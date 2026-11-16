@@ -54,7 +54,7 @@ export function AdminView() {
               ))}
             </select>
           </label>
-          <button className="run" onClick={run} disabled={loading || !scenarioId}>
+          <button className="run" onClick={() => void run()} disabled={loading || !scenarioId}>
             {loading ? "Running…" : "Run TREE"}
           </button>
         </div>
