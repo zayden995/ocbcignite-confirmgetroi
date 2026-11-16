@@ -206,6 +206,8 @@ export interface ProofTreeResult {
   claims: ClaimNodeData[];
   edges: EdgeData[];
   missing_inputs: MissingInput[];
+  ai_thoughts?: string | null;
+  verification_thoughts?: string[];
 }
 
 export interface Meta {
@@ -242,4 +244,16 @@ export interface ScenarioDetail {
   ai_answer: string;
   employee: { role: string; region: string };
   citations: string[];
+  ai_thoughts?: string | null;
+}
+
+export interface ChatTurn {
+  turnId: string;
+  scenarioId: string;
+  scenario: ScenarioDetail;
+  result: ProofTreeResult | null;
+  params: Record<string, unknown>;
+  suppliedInputs: MissingInput[];
+  loadingAnswer?: boolean;
+  loadingVerify?: boolean;
 }

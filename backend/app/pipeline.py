@@ -92,6 +92,22 @@ def run_tree(
         else f"{len(bad)} of {len(nodes)} claims not verified: " + "; ".join(f"{n.id} {n.status}" for n in bad) + "."
     )
     roots = build_roots(nodes, ctx)
+
+    verification_thoughts: list[str] = [
+        f"[EXTRACT] Identified conclusion: '{extraction.conclusion}' and decomposed into {len(extraction.claims)} atomic claim(s)."
+    ]
+    for n in nodes:
+        sup = [e.passage_id for e in n.evidence if e.role == "supports"]
+        chal = [f"{e.passage_id} (via '{e.counter_query}')" for e in n.evidence if e.role == "challenges"]
+        verification_thoughts.append(
+            f"[INVESTIGATE {n.id}] Checked cited & retrieved clauses -> Supporting: {sup or 'None'}; Missing inputs: {n.missing_slots or 'None'}."
+        )
+        verification_thoughts.append(
+            f"[CHALLENGE {n.id}] Ran 5 adversarial counter-queries -> Contradictions found: {chal or 'None'}."
+        )
+        verification_thoughts.append(
+            f"[VERIFY {n.id}] SE={n.se:.2f}, SC={n.sc:.2f} -> Verdict: {n.status} ({n.reason})"
+        )
     return ProofTree(
         scenario_id=scenario["id"], title=scenario["title"], demo_date=today,
         llm_mode="mock" if llm.is_mock else config.LLM_PROVIDER,
@@ -103,4 +119,6 @@ def run_tree(
         roots=roots, trunk=Trunk(text=extraction.conclusion, status=overall),
         claims=nodes, edges=build_edges(nodes, roots),
         missing_inputs=build_missing_inputs(nodes, load_slot_defs()),
+        ai_thoughts=scenario.get("ai_thoughts"),
+        verification_thoughts=verification_thoughts,
     )

@@ -7,12 +7,13 @@ of the best supporting passage and slot coverage.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from operator import inv
 
 from .conditions import evaluate_conditions
 from .context import RunContext
 from .models import Claim, ConditionResult, Evidence, Passage, TraceCandidate, TraceQuery
 from .retrieval import retrieve
-
+from concurrent.futures import ThreadPoolExecutor
 
 @dataclass
 class Investigation:
@@ -73,12 +74,36 @@ def investigate_claim(claim: Claim, ctx: RunContext) -> Investigation:
                 retrieval_score=retrieval_score.get(pid), nli_label=r.label, nli_score=r.score, outcome=outcome,
             )
         )
+    _NEGATIVE_CLAIM_PHRASES = (
+        "not eligible",
+        "ineligible",
+        "does not qualify",
+        "do not qualify",
+        "doesn't qualify",
+        "not qualify",
+        "does not earn",
+        "do not earn",
+        "does not meet",
+        "below the minimum",
+    )
 
     supports = [e for e in inv.evidence if e.role == "supports"]
     if supports:
         best = max(supports, key=lambda e: e.score)
         inv.best_support = candidates[best.passage_id]
-        inv.conditions = evaluate_conditions(inv.best_support.conditions, ctx.employee.params, best.passage_id)
+        conds = evaluate_conditions(inv.best_support.conditions, ctx.employee.params, best.passage_id)
+        # If the AI already concluded the customer is NOT eligible, a failed eligibility
+        # condition confirms the AI's refusal rather than refuting the claim.
+        is_refusal = any(p in claim.text.lower() for p in _NEGATIVE_CLAIM_PHRASES)
+        if is_refusal and any(c.result == "fail" for c in conds):
+            inv.conditions = []
+        else:
+            inv.conditions = conds
+
+    missing = [s for s in claim.required_slots if _missing(ctx.employee.params, s)]
+    missing += [c.field for c in inv.conditions if c.result == "missing"]
+    inv.missing_slots = list(dict.fromkeys(missing))
+    return inv
 
     missing = [s for s in claim.required_slots if _missing(ctx.employee.params, s)]
     missing += [c.field for c in inv.conditions if c.result == "missing"]

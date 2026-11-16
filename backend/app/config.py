@@ -1,6 +1,9 @@
 import os
 from datetime import date
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=True)
 
 # Fixed "today" so freshness results are repeatable on demo day.
 DEMO_DATE = date(2026, 10, 28)
