@@ -23,7 +23,6 @@ export function Header({ route }: { route: Route }) {
       <div className="badges">
         {meta?.llm_badge && <span className="mock-badge">{meta.llm_badge}</span>}
         {meta && <span className="data-badge">{meta.data_label}</span>}
-        {meta && <span className="data-badge">Demo date {meta.demo_date}</span>}
       </div>
     </header>
   );

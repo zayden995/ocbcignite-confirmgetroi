@@ -17,6 +17,19 @@ def test_default_provider_is_mock():
     assert get_llm().is_mock is True
 
 
+def test_without_a_gemini_key_the_scripted_mock_is_the_fallback():
+    assert config.resolve_provider({}) == "mock"
+    assert config.resolve_provider({"GEMINI_API_KEY": "   "}) == "mock"
+
+
+def test_a_gemini_key_alone_switches_the_app_to_gemini():
+    assert config.resolve_provider({"GEMINI_API_KEY": "some-key"}) == "gemini"
+
+
+def test_an_explicit_provider_setting_wins_over_the_key():
+    assert config.resolve_provider({"TREE_LLM_PROVIDER": " Mock ", "GEMINI_API_KEY": "some-key"}) == "mock"
+
+
 def test_mock_extract_returns_scripted_claims_for_the_scenario():
     ex = MockLLM().extract(S1["question"], S1["ai_answer"])
     assert [c.id for c in ex.claims] == ["s1.c1", "s1.c2", "s1.c3"]

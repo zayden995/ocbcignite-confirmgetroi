@@ -1,4 +1,5 @@
 import os
+from collections.abc import Mapping
 from datetime import date
 from pathlib import Path
 from dotenv import load_dotenv
@@ -13,6 +14,19 @@ DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 
 DATA_LABEL = "Synthetic - not real OCBC policy"
 
-# "mock" (default) returns scripted fixtures. Any other value selects the
-# real-provider adapter stub in app/llm/provider.py.
-LLM_PROVIDER = os.environ.get("TREE_LLM_PROVIDER", "mock").strip().lower()
+
+def resolve_provider(env: Mapping[str, str]) -> str:
+    """Which LLM the app uses.
+
+    Gemini (app/llm/provider.py) whenever GEMINI_API_KEY is set. Without a key the app falls back
+    to "mock", the scripted fixtures, so it still runs offline and in tests. TREE_LLM_PROVIDER
+    overrides this choice: "mock" forces the fixtures even with a key, and any name other than
+    "gemini" fails loudly as not implemented.
+    """
+    explicit = env.get("TREE_LLM_PROVIDER", "").strip().lower()
+    if explicit:
+        return explicit
+    return "gemini" if env.get("GEMINI_API_KEY", "").strip() else "mock"
+
+
+LLM_PROVIDER = resolve_provider(os.environ)

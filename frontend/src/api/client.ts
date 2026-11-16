@@ -56,6 +56,8 @@ export const verifyCustom = (body: {
   role: string;
   region: string;
   params: Record<string, unknown>;
+  /** Earlier turns of this conversation. The server keeps no chat history, so follow-ups need it. */
+  history?: Array<{ question: string; ai_answer: string }>;
 }) =>
   request<ProofTreeResult>("/api/verify-custom", {
     method: "POST",

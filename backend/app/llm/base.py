@@ -10,8 +10,11 @@ class LLM(Protocol):
     #: True when outputs are scripted fixtures (drives the MOCK badge in the UI)
     is_mock: bool
 
-    def extract(self, question: str, answer: str) -> Extraction:
-        """Entities, case parameters and atomic claims (with their citations)."""
+    def extract(self, question: str, answer: str, history: list[tuple[str, str]] | None = None) -> Extraction:
+        """Entities, case parameters and atomic claims (with their citations).
+
+        history is the conversation's earlier (question, answer) turns, for follow-up questions.
+        """
         ...
 
     def nli(self, claim: Claim, passage: Passage) -> NLIResult:

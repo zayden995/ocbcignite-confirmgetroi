@@ -4,6 +4,7 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
+from google.genai import errors as genai_errors
 from pydantic import BaseModel, Field
 
 from . import config
@@ -33,6 +34,13 @@ class VerifyRequest(BaseModel):
 @app.exception_handler(NotImplementedError)
 async def _provider_not_implemented(_, exc: NotImplementedError):
     return JSONResponse(status_code=501, content={"detail": str(exc)})
+
+
+@app.exception_handler(genai_errors.APIError)
+async def _gemini_failed(_, exc: genai_errors.APIError):
+    # a bad key, an exhausted quota or an outage at Google: say so instead of a bare 500
+    what = " ".join(str(part) for part in (exc.code, exc.status) if part)
+    return JSONResponse(status_code=502, content={"detail": f"Gemini request failed ({what}): {exc.message}"})
 
 
 @app.exception_handler(ScenarioNotFound)
@@ -144,6 +152,12 @@ class VerifyCustomRequest(BaseModel):
     role: str
     region: str
     params: dict[str, Any] = Field(default_factory=dict)
+    history: list[ChatTurnInput] = Field(default_factory=list)
+
+
+def _history_pairs(history: list[ChatTurnInput]) -> list[tuple[str, str]]:
+    """The conversation so far, as sent by the browser. The server keeps no chat history of its own."""
+    return [(t.question, t.ai_answer) for t in history]
 
 
 from .retrieval import _tokens
@@ -175,10 +189,16 @@ def ask_custom(req: AskRequest):
     _check_employee(req.role, req.region)
     llm = get_llm()
     if llm.is_mock:
-        raise HTTPException(400, "Switch TREE_LLM_PROVIDER=gemini in backend/.env to ask custom questions.")
+        raise HTTPException(
+            400,
+            "Typed questions need Gemini. Add GEMINI_API_KEY to backend/.env "
+            "(or to the Vercel environment variables), then restart.",
+        )
     # Naive bot only sees top-2 flat text hits (no governance filters, no amendment graph traversal)
     naive_hits = naive_rag_retrieve(req.question, k=2)
-    answer = llm.generate_answer(req.question, naive_hits, role=req.role, region=req.region)
+    answer = llm.generate_answer(
+        req.question, naive_hits, role=req.role, region=req.region, history=_history_pairs(req.history)
+    )
     return {
         "id": "custom",
         "title": "Custom question",
@@ -196,5 +216,6 @@ def verify_custom(req: VerifyCustomRequest):
         "title": "Custom question",
         "question": req.question,
         "ai_answer": req.ai_answer,
+        "history": _history_pairs(req.history),
     }
     return run_tree(custom_scenario, req.role, req.region, req.params, llm=get_llm(), corpus=corpus)

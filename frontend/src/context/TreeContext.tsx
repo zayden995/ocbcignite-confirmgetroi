@@ -243,12 +243,23 @@ export function TreeProvider({ children }: { children: ReactNode }) {
         };
 
         if (target.scenarioId === "custom") {
+          // The turns before this one: the server keeps no chat history, so a follow-up
+          // ("what if they use FAST?") is only understood if they are sent along.
+          const targetIndex = turnsRef.current.findIndex((t) => t.turnId === turnId);
+          const history = turnsRef.current
+            .slice(0, targetIndex)
+            .filter((t) => !t.loadingAnswer && t.scenario.ai_answer)
+            .map((t) => ({
+              question: t.scenario.question,
+              ai_answer: t.scenario.ai_answer,
+            }));
           res = await verifyCustom({
             question: target.scenario.question,
             ai_answer: target.scenario.ai_answer,
             role: currentRole,
             region: currentRegion,
             params: effectiveParams,
+            ...(history.length > 0 ? { history } : {}),
           });
         } else {
           res = await verify({
@@ -312,13 +323,41 @@ export function TreeProvider({ children }: { children: ReactNode }) {
 
   const run = useCallback(
     async (overrideParams?: Record<string, unknown>) => {
-      const currentActive =
+      let currentActive =
         turnsRef.current.find((t) => t.turnId === activeTurnId) ??
         turnsRef.current[turnsRef.current.length - 1];
-      if (!currentActive) return;
+      if (!currentActive) {
+        // Nothing has been asked yet (the Admin view opened directly): load the scenario its
+        // dropdown shows by default, keeping the role and region already chosen there.
+        const firstId = meta?.scenarios[0]?.id;
+        if (!firstId) return;
+        setError(null);
+        setLoading(true);
+        try {
+          const s = await fetchScenario(firstId);
+          currentActive = {
+            turnId: `turn-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            scenarioId: firstId,
+            scenario: s,
+            result: null,
+            params: {},
+            suppliedInputs: [],
+            loadingAnswer: false,
+            loadingVerify: false,
+          };
+          // runForTurn reads the ref, which React only refreshes on the next render
+          turnsRef.current = [...turnsRef.current, currentActive];
+          const loaded = currentActive;
+          setTurns((prev) => [...prev, loaded]);
+        } catch (e: unknown) {
+          setError(e instanceof Error ? e.message : String(e));
+          setLoading(false);
+          return;
+        }
+      }
       await runForTurn(currentActive.turnId, overrideParams);
     },
-    [activeTurnId, runForTurn]
+    [activeTurnId, runForTurn, meta]
   );
 
   const submitInputs = useCallback(

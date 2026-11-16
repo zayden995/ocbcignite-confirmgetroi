@@ -23,7 +23,7 @@ function useFetched<T>(load: () => Promise<T>, key: string): { data: T | null; e
   return { data, error };
 }
 
-const num = (n: number | null | undefined) => (n == null ? "â€“" : n.toFixed(2));
+const num = (n: number | null | undefined) => (n == null ? "–" : n.toFixed(2));
 
 function Table({ head, children }: { head: string[]; children: ReactNode }) {
   return (
@@ -88,7 +88,7 @@ export function AdminOverview({ result }: { result: ProofTreeResult }) {
               <td className="n">{num(c.se)}</td>
               <td className="n">{num(c.sc)}</td>
               <td><FailureChips types={c.failure_types} /></td>
-              <td>{c.missing_slots.join(", ") || "â€“"}</td>
+              <td>{c.missing_slots.join(", ") || "–"}</td>
             </tr>
           ))}
         </Table>
@@ -160,7 +160,7 @@ function ClaimTraceView({ c, cfg, mock }: { c: ClaimNodeData; cfg: AdminConfig |
       </Table>
       {c.conditions.length > 0 && (
         <p className="note">
-          Mandatory conditions of the best support: {c.conditions.map((x) => `${x.field} ${x.op} ${JSON.stringify(x.expected)} â†’ ${x.result}`).join("; ")}.
+          Mandatory conditions of the best support: {c.conditions.map((x) => `${x.field} ${x.op} ${JSON.stringify(x.expected)} → ${x.result}`).join("; ")}.
         </p>
       )}
 
@@ -191,7 +191,7 @@ function ClaimTraceView({ c, cfg, mock }: { c: ClaimNodeData; cfg: AdminConfig |
       {c.evidence.filter((e) => e.role === "challenges").map((e) => (
         <p className="note" key={e.passage_id}>
           <strong className="mono">{e.passage_id}</strong>: {e.effect?.replaceAll("_", " ") ?? "unscored"}
-          {e.trigger_conditions.length > 0 && ` Â· trigger ${e.trigger_conditions.map((x) => `${x.field} ${x.op} ${JSON.stringify(x.expected)} â†’ ${x.result}`).join(", ")}`}
+          {e.trigger_conditions.length > 0 && ` · trigger ${e.trigger_conditions.map((x) => `${x.field} ${x.op} ${JSON.stringify(x.expected)} → ${x.result}`).join(", ")}`}
         </p>
       ))}
 
@@ -207,7 +207,7 @@ function ClaimTraceView({ c, cfg, mock }: { c: ClaimNodeData; cfg: AdminConfig |
         ]}
       />
       <ol className="rules">
-        <li className={fired === 1 ? "fired" : ""}>Refuted if SC â‰¥ {th?.refute_sc ?? 0.5} or a mandatory condition fails</li>
+        <li className={fired === 1 ? "fired" : ""}>Refuted if SC ≥ {th?.refute_sc ?? 0.5} or a mandatory condition fails</li>
         <li className={fired === 2 ? "fired" : ""}>Unresolved if required inputs are missing or equal-authority sources conflict</li>
         <li className={fired === 3 ? "fired" : ""}>Verified if SE &gt; {th?.verify_se ?? 0.85}, SC &lt; {th?.verify_sc ?? 0.15} and all conditions pass</li>
         <li className={fired === 4 ? "fired" : ""}>Otherwise Unresolved</li>
@@ -222,7 +222,7 @@ export function CorpusTab() {
   const { data, error } = useFetched<AdminCorpus>(() => fetchAdminCorpus(role, region), `${role}/${region}`);
   const used = new Set(result?.roots.map((r) => r.id));
   if (error) return <p className="error">{error}</p>;
-  if (!data) return <p className="empty">Loading the corpusâ€¦</p>;
+  if (!data) return <p className="empty">Loading the corpus…</p>;
   return (
     <div className="stack">
       <section className="panel">
@@ -254,7 +254,7 @@ export function CorpusTab() {
               <td>{p.role_scope.join(", ")}</td>
               <td className="n">{p.authority}</td>
               <td className="mono">{p.source.hub}{p.source.path}</td>
-              <td className="mono">{shortHash(p.hash)} {p.hash_ok ? "âœ”" : "âœ–"}</td>
+              <td className="mono">{shortHash(p.hash)} {p.hash_ok ? "✔" : "✖"}</td>
               <td><StatePill state={p.state} label={p.state_label} /></td>
             </tr>
           ))}
@@ -268,7 +268,7 @@ export function CorpusTab() {
 export function ConfigTab() {
   const { data, error } = useFetched(fetchAdminConfig, "config");
   if (error) return <p className="error">{error}</p>;
-  if (!data) return <p className="empty">Loading settingsâ€¦</p>;
+  if (!data) return <p className="empty">Loading settings…</p>;
   const t = data.thresholds;
   return (
     <div className="stack">
@@ -289,7 +289,7 @@ export function ConfigTab() {
         <h2>Verification matrix</h2>
         <p className="note">Plain Python, no model call. Rules are evaluated in this order for each claim.</p>
         <Table head={["Order", "Status", "Condition"]}>
-          <tr><td className="n">1</td><td><StatusBadge status="Refuted" /></td><td>SC â‰¥ {t.refute_sc.toFixed(2)}, or a mandatory condition explicitly fails</td></tr>
+          <tr><td className="n">1</td><td><StatusBadge status="Refuted" /></td><td>SC ≥ {t.refute_sc.toFixed(2)}, or a mandatory condition explicitly fails</td></tr>
           <tr><td className="n">2</td><td><StatusBadge status="Unresolved" /></td><td>Required intent slots are missing, or active sources of equal authority conflict</td></tr>
           <tr><td className="n">3</td><td><StatusBadge status="Verified" /></td><td>SE &gt; {t.verify_se.toFixed(2)} and SC &lt; {t.verify_sc.toFixed(2)} and all mandatory conditions met</td></tr>
           <tr><td className="n">4</td><td><StatusBadge status="Unresolved" /></td><td>Anything else, for example SE 0.90 with SC 0.30</td></tr>

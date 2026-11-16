@@ -67,8 +67,11 @@ export function SummaryStrip() {
             ))}
           </ul>
           <p className="note">
-            These five scenarios were written to contain the failures TREE looks for, and the model outputs are
-            scripted{summary.llm_badge ? ` (${summary.llm_badge})` : ""}. This illustrates the pipeline; it is not a measured accuracy.
+            These five scenarios were written to contain the failures TREE looks for
+            {summary.llm_badge
+              ? `, and the model outputs are scripted (${summary.llm_badge}).`
+              : ". The AI answers are scripted; the checking is done by the live model, so results can vary between runs."}
+            {" "}This illustrates the pipeline; it is not a measured accuracy.
           </p>
         </>
       )}

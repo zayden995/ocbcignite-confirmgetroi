@@ -40,7 +40,7 @@ def run_tree(
     corpus: Corpus,
     today: date = config.DEMO_DATE,
 ) -> ProofTree:
-    extraction = llm.extract(scenario["question"], scenario["ai_answer"])
+    extraction = llm.extract(scenario["question"], scenario["ai_answer"], history=scenario.get("history"))
     supplied = {k: v for k, v in supplied_params.items() if v is not None and str(v).strip() != ""}
     employee = Employee(role=role, region=region, params={**extraction.params, **supplied})
     ctx = RunContext(corpus=corpus, llm=llm, employee=employee, today=today)

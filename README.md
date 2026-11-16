@@ -4,9 +4,11 @@ Hackathon prototype for the OCBC Ignite Innovation Challenge, Problem Statement 
 
 TREE does not stop at finding evidence that supports an AI answer. It also tries to **disprove** it, then shows the result as an interactive Proof Tree: **Investigate** (evidence, authenticity, applicability, slot coverage) -> **Challenge** (counter-queries for exceptions, conflicts, superseded or inapplicable policy, unsupported assumptions) -> **Verify** (a deterministic matrix). It is compared side by side with a citation-only baseline.
 
-> **MOCK LLM (scripted outputs).** By default every model call returns scripted fixtures
-> (`backend/app/llm/fixtures.json`). The SE/SC scores in the UI are derived from those scripted
-> outputs. They are **not measured results**. All data is **Synthetic - not real OCBC policy**.
+> **Two modes.** With a `GEMINI_API_KEY` set, every model call goes to Google Gemini (see "Gemini
+> mode" below). Without a key the app falls back to the **MOCK LLM (scripted outputs)**: every model
+> call returns scripted fixtures (`backend/app/llm/fixtures.json`), the header shows a MOCK badge, and
+> the SE/SC scores are derived from those scripted outputs, so they are **not measured results**. In
+> both modes all data is **Synthetic - not real OCBC policy**.
 
 ## Run it
 
@@ -28,21 +30,48 @@ npm run dev          # open http://localhost:5173  (the dev server proxies /api 
 Tests: `cd backend; .venv\Scripts\python.exe -m pip install -r requirements-dev.txt; .venv\Scripts\python.exe -m pytest -q`
 (`requirements.txt` is what the deployed app needs; `requirements-dev.txt` adds the test packages.)
 
+### Gemini mode (the default once a key is set)
+
+Create `backend/.env` (git-ignored; never commit it) with a key from Google AI Studio and restart the
+backend:
+
+```
+GEMINI_API_KEY=<your key>
+# optional: TREE_GEMINI_MODEL=<model id>   (the default is set in backend/app/llm/provider.py)
+# optional: TREE_LLM_PROVIDER=mock         (forces the scripted fixtures even with a key)
+```
+
+A key alone switches the whole app to Gemini: the MOCK badge disappears, and Gemini does `extract()`
+and `nli()` for the five scenarios as well as for typed questions. The scenarios' AI answers are still
+the scripted text, but their verdicts now come from the model, so they can differ from the designed
+ones and vary between runs ("Run all 5 scenarios" shows where they match). `POST /api/ask` answers a
+typed question the way a plain chatbot would (top-2 keyword retrieval, no governance filters), and
+`POST /api/verify-custom` runs TREE on that answer. The server keeps no chat history: the browser sends
+the earlier turns of the conversation with each request, so one visitor's questions never reach
+another's. If a Gemini call fails (bad key, quota, outage) the app reports the reason; it does not
+silently fall back to the mock. The corpus is still synthetic.
+
+Without a key the app runs on the MOCK LLM, which only knows the five scripted questions. The tests
+always use the mock or a faked network call (`backend/tests/conftest.py`), so they need no key and
+ignore `backend/.env`.
+
 ## Deploy to Vercel
 
 The repo is set up for [Vercel Services](https://vercel.com/docs/services) (Beta): one project, two
 services. `vercel.json` builds `frontend/` (Vite) and `backend/` (FastAPI, `app.main:app`) and routes
 `/api/*` to the backend and everything else to the frontend, so the app calls `/api` on its own domain
 and needs no CORS or URL settings. The backend reads its synthetic data from `backend/data/`, which is
-why that folder lives inside `backend/`. It runs in MOCK mode by default; do not set
-`TREE_LLM_PROVIDER` unless a real adapter has been implemented.
+why that folder lives inside `backend/`. For Gemini mode on the deployed site, add `GEMINI_API_KEY`
+under the Vercel project's Environment Variables and redeploy (there is no `.env` file on Vercel).
+Without it the deployed site runs on the MOCK LLM: the five scenarios work, and typed questions return
+an error asking for the key.
 
 To try the same routing locally: `npx vercel dev --local` (then open http://localhost:3000).
 
 ## Two views
 
 - **Employee** (`http://localhost:5173/`): opens like a new chat ("Good morning, how may I help you?").
-  Type one of the sample questions (this demo only knows those) or tap a starter, read the AI's
+  Tap a starter or type one of the sample questions (in Gemini mode, any question), read the AI's
   answer, press **Run TREE**. The result opens with one large verdict: the label (Verified,
   Unresolved or Refuted), why in one sentence, and what to say or do instead. Claim-by-claim
   detail is folded away under it. Beside it is the **Proof Tree**: an illustrated tree where each branch
@@ -102,11 +131,15 @@ view inspects one run; it does not aggregate across runs).
 
 ## What is mocked (honest list)
 
-- **The LLM.** `extract()` and `nli()` return scripted fixtures keyed to the scenarios. Nothing is
-  measured. `TREE_LLM_PROVIDER=<name>` selects an adapter stub (`backend/app/llm/provider.py`) that
-  raises `NotImplementedError`; there is no silent fallback to mock.
-- **Proposed corrections** in mock mode are scripted text.
-- **SE / SC scores** shown on branches come from the scripted model outputs. They are not measured.
+- **The LLM, when no key is set.** `extract()` and `nli()` return scripted fixtures keyed to the
+  scenarios, and nothing is measured. With `GEMINI_API_KEY` set they call Gemini instead
+  (`backend/app/llm/provider.py`, see "Gemini mode" above). Setting `TREE_LLM_PROVIDER` to any name
+  other than `mock` or `gemini` raises `NotImplementedError`.
+- **Proposed corrections** in mock mode are scripted text; in Gemini mode they are built from the
+  policy passage that drove the verdict.
+- **SE / SC scores** shown on branches come from the scripted model outputs in mock mode, where they
+  are not measured. In Gemini mode they are the scores the model returned.
+- **The scenarios' AI answers** are scripted text in both modes.
 - **The five scenarios** are a scripted demo set written to contain these failures. The summary strip
   (1 of 5 citation-only vs 5 of 5 TREE) is labelled "Scripted demo set, not a benchmark" and is not an
   accuracy figure.

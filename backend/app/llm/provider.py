@@ -8,6 +8,10 @@ from ..corpus import load_corpus
 from ..models import Claim, Extraction, NLIResult, Passage
 from ..scenarios import load_slot_defs
 
+#: Earlier turns of one conversation as (question, answer) pairs, oldest first. Sent by the client with each request.
+History = list[tuple[str, str]]
+
+
 class _ExtractedParams(BaseModel):
     deposit_amount: float | None = None
     tenor_months: int | None = None
@@ -56,8 +60,9 @@ class ProviderLLM:
 
     def __init__(self, provider: str) -> None:
         self.provider = provider.lower()
+        # One instance serves every request, so it must hold nothing that belongs to a single
+        # conversation. Chat history arrives with each request instead (see History).
         self._nli_cache: dict[tuple[str, str], NLIResult] = {}
-        self._chat_history: list[tuple[str, str]] = []
         if self.provider != "gemini":
             self._client = None
             return
@@ -65,25 +70,28 @@ class ProviderLLM:
         self._client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
         self._model = os.environ.get("TREE_GEMINI_MODEL", "gemini-3.8-flash")
 
-    def clear_history(self) -> None:
-        self._chat_history.clear()
-
     def _not_implemented(self, what: str) -> NotImplementedError:
         return NotImplementedError(
             f"LLM provider '{self.provider}' is selected but {what}() is not implemented. "
             "Implement it in backend/app/llm/provider.py or unset TREE_LLM_PROVIDER to use the mock."
         )
 
-    def _format_history(self) -> str:
-        if not self._chat_history:
+    @staticmethod
+    def _format_history(history: History | None) -> str:
+        if not history:
             return "None (start of conversation)."
         return "\n".join(
             f"Turn {i + 1} Employee: {q}\nTurn {i + 1} Assistant: {a}"
-            for i, (q, a) in enumerate(self._chat_history[-4:])
+            for i, (q, a) in enumerate(history[-4:])
         )
 
     def generate_answer(
-        self, question: str, passages: list[Passage], role: str = "RM", region: str = "SG"
+        self,
+        question: str,
+        passages: list[Passage],
+        role: str = "RM",
+        region: str = "SG",
+        history: History | None = None,
     ) -> str:
         if self._client is None:
             raise self._not_implemented("generate_answer")
@@ -91,7 +99,7 @@ class ProviderLLM:
             f"[{p.passage_id}] ({p.title}, status={p.status}, region={p.region}, roles={p.role_scope}): {p.text}"
             for p in passages
         )
-        history_block = self._format_history()
+        history_block = self._format_history(history)
         prompt = (
             f"You are an internal banking AI assistant helping an employee (Role: {role}, Region: {region}). "
             "Use the Prior Conversation History to resolve follow-up questions (such as 'what if they use FAST?' "
@@ -106,14 +114,12 @@ class ProviderLLM:
             contents=prompt,
             config={"thinking_config": {"thinking_level": "low"}},
         )
-        ans = resp.text.strip()
-        self._chat_history.append((question, ans))
-        return ans
+        return resp.text.strip()
 
-    def extract(self, question: str, answer: str) -> Extraction:
+    def extract(self, question: str, answer: str, history: History | None = None) -> Extraction:
         if self._client is None:
             raise self._not_implemented("extract")
-        history_block = self._format_history()
+        history_block = self._format_history(history)
         prompt = (
             f"Prior Conversation History:\n{history_block}\n\n"
             f"Current Question: {question}\nAI Answer: {answer}"
@@ -130,7 +136,8 @@ class ProviderLLM:
         parsed = _GeminiExtraction.model_validate_json(resp.text)
         clean_params = {k: v for k, v in parsed.params.model_dump().items() if v is not None}
 
-        combined_text = (" ".join(q for q, _ in self._chat_history[-2:]) + " " + question).upper()
+        # the previous turn's question plus this one, so "what if they use FAST?" still carries over
+        combined_text = (" ".join(q for q, _ in (history or [])[-1:]) + " " + question).upper()
         if "channel" not in clean_params:
             for ch in ("FAST", "GIRO", "CHEQUE", "COUNTER"):
                 if ch in combined_text:

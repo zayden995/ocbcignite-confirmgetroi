@@ -25,7 +25,8 @@ class MockLLM:
         # extract(question, answer) has no scenario id, so match on the exact text pair
         self._by_text = {(s["question"].strip(), s["ai_answer"].strip()): s["id"] for s in scenarios}
 
-    def extract(self, question: str, answer: str) -> Extraction:
+    def extract(self, question: str, answer: str, history: list[tuple[str, str]] | None = None) -> Extraction:
+        # scripted scenarios are single-turn, so history is not used
         sid = self._by_text.get((question.strip(), answer.strip()))
         if sid is None or sid not in self._fx["extract"]:
             raise NoScriptedFixture("MOCK LLM has no scripted extraction for this question/answer pair")
