@@ -15,7 +15,7 @@ export function Verdict({
   selectedId: string | null;
   onSelectClaim: (id: string) => void;
 }) {
-  const { meta, params, suppliedInputs } = useTree();
+  const { meta, params, suppliedInputs = [] } = useTree();
   const [reporting, setReporting] = useState(false);
   const status = result.overall.status;
   const why = plainWhy(result, meta);

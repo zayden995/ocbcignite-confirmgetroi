@@ -1,92 +1,315 @@
 import { useEffect, useRef } from "react";
 import { useTree } from "../../context/TreeContext";
-import type { ProofTreeResult } from "../../types";
 import { Composer } from "./Composer";
 import { ProfilePicker } from "./ProfilePicker";
 import { Verdict } from "./Verdict";
 
-function Avatar() {
-  return (
-    <span className="avatar" aria-hidden>
-      <svg viewBox="0 0 24 24" width="20" height="20">
-        <circle cx="12" cy="9" r="7" fill="#fff" />
-        <rect x="10.8" y="13" width="2.4" height="8" rx="1" fill="#fff" />
-      </svg>
-    </span>
-  );
-}
-
-const tagOf = (title: string) => title.replace(/^\d+\.\s*/, "").replace(/\s*\(hero\)/, "");
-
-/** The conversation once a question has been asked. */
 export function ChatPanel({
-  askedId, onAsk, onNewChat, result, selectedId, onSelectClaim,
+  onAsk,
+  onNewChat,
 }: {
-  askedId: string;
   onAsk: (id: string) => void;
   onNewChat: () => void;
-  result: ProofTreeResult | null;
-  selectedId: string | null;
-  onSelectClaim: (id: string) => void;
 }) {
-  const { meta, scenario, run, loading, role, region } = useTree();
-  const endRef = useRef<HTMLDivElement>(null);
+  const {
+    turns,
+    activeTurnId,
+    setActiveTurnId,
+    runForTurn,
+    clearChat,
+    loading,
+    selectedClaimId,
+    selectClaim,
+  } = useTree();
 
+  const threadRef = useRef<HTMLDivElement | null>(null);
+
+  // Auto-scroll to bottom when a new turn is added
   useEffect(() => {
-    endRef.current?.scrollIntoView?.({ block: "end" });
-  }, [askedId, result, loading]);
-
-  const roleLabel = meta?.roles.find((r) => r.code === role)?.label ?? role;
-  const regionLabel = meta?.regions.find((r) => r.code === region)?.label ?? region;
+    if (threadRef.current) {
+      threadRef.current.scrollTo({
+        top: threadRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [turns.length]);
 
   return (
-    <section className="chat" aria-label="Chat with the OCBC assistant">
+    <section className="chat" aria-label="Employee assistant chat">
       <div className="chat-head">
         <div>
-          <strong>OCBC Assistant</strong>
-          <span className="chat-sub">Synthetic demo. Answers are scripted.</span>
+          <strong>OCBC Internal Assistant</strong>
+          <span className="chat-sub">
+             Verified by OCBC TREE · {turns.length} {turns.length === 1 ? "turn" : "turns"} in history
+          </span>
         </div>
-        <button className="ghost" onClick={onNewChat}>New chat</button>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <ProfilePicker />
+          {turns.length > 0 && (
+            <button
+              type="button"
+              className="ghost small"
+              onClick={() => {
+                clearChat();
+                onNewChat();
+              }}
+              title="Clear conversation history"
+            >
+              Clear Chat
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="thread">
-        {scenario && scenario.id === askedId && (
-          <>
-            <div className="msg user">
-              <div className="bubble">{scenario.question}</div>
-            </div>
-            <div className="msg bot">
-              <Avatar />
-              <div className="bubble">
-                <p>{scenario.ai_answer}</p>
-                {!result && (
-                  <div className="answer-actions">
-                    <button className="run" onClick={run} disabled={loading}>
-                      {loading ? "Running…" : "Run TREE"}
-                    </button>
-                    <span className="hint">Checks this answer for a {roleLabel} in {regionLabel}.</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </>
+      <div className="thread" ref={threadRef}>
+        {turns.length === 0 && (
+          <div className="empty">
+            Ask a question or pick a starter scenario below to begin.
+          </div>
         )}
 
-        {result && scenario?.id === askedId && <Verdict result={result} selectedId={selectedId} onSelectClaim={onSelectClaim} />}
-        <div ref={endRef} />
+        {turns.map((turn, index) => {
+          const isActive = turn.turnId === activeTurnId;
+          const hasThoughts = Boolean(
+            turn.scenario.ai_thoughts ||
+              (turn.result?.verification_thoughts &&
+                turn.result.verification_thoughts.length > 0)
+          );
+
+          return (
+            <div
+              key={turn.turnId}
+              onClick={() => setActiveTurnId(turn.turnId)}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "12px",
+                padding: "12px",
+                borderRadius: "14px",
+                border: isActive
+                  ? "2px solid var(--green-deep)"
+                  : "1px solid var(--line)",
+                background: isActive ? "rgba(46, 125, 50, 0.03)" : "#fff",
+                cursor: "pointer",
+                transition: "border-color 0.15s, background 0.15s",
+              }}
+            >
+              {/* Turn Header Badge */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  fontSize: "11.5px",
+                  color: "var(--muted)",
+                  fontWeight: 700,
+                }}
+              >
+                <span>
+                  TURN #{index + 1} ·{" "}
+                  {turn.scenarioId === "custom"
+                    ? "CUSTOM PROMPT"
+                    : turn.scenario.title.toUpperCase()}
+                </span>
+                <span
+                  style={{
+                    color: isActive ? "var(--green-deep)" : "var(--muted)",
+                  }}
+                >
+                  {isActive ? "● Active on Proof Tree" : "Click to inspect"}
+                </span>
+              </div>
+
+              {/* 1. User Question Bubble */}
+              <div className="msg user">
+                <div className="bubble">{turn.scenario.question}</div>
+              </div>
+
+              {/* 2. Bot Answer Bubble + Openable Thought Process Tab */}
+              <div className="msg bot">
+                <div className="avatar" aria-hidden="true">
+                  <span style={{ color: "#fff", fontWeight: 800, fontSize: "12px" }}>
+                    AI
+                  </span>
+                </div>
+                <div className="bubble" style={{ width: "100%" }}>
+                  {/* Openable Thought Process Drawer */}
+                  {hasThoughts && (
+                    <details
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        marginBottom: "10px",
+                        border: "1px solid var(--line)",
+                        borderRadius: "10px",
+                        background: "#fff",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <summary
+                        style={{
+                          cursor: "pointer",
+                          padding: "7px 12px",
+                          fontSize: "12.5px",
+                          fontWeight: 700,
+                          color: "var(--green-deep)",
+                          background: "var(--green-wash)",
+                          userSelect: "none",
+                        }}
+                      >
+                        ✦ Open AI & TREE Thought Process
+                      </summary>
+                      <div
+                        style={{
+                          padding: "10px 12px",
+                          fontSize: "12.5px",
+                          borderTop: "1px solid var(--line)",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "10px",
+                          maxHeight: "260px",
+                          overflowY: "auto",
+                        }}
+                      >
+                        {turn.scenario.ai_thoughts && (
+                          <div>
+                            <strong
+                              style={{
+                                display: "block",
+                                fontSize: "12px",
+                                color: "var(--green-deep)",
+                                marginBottom: "4px",
+                              }}
+                            >
+                              1. AI Assistant Generation Reasoning
+                            </strong>
+                            <pre
+                              style={{
+                                whiteSpace: "pre-wrap",
+                                fontFamily: "var(--mono)",
+                                fontSize: "11.5px",
+                                background: "var(--mist)",
+                                padding: "8px",
+                                borderRadius: "6px",
+                                margin: 0,
+                                color: "var(--ink)",
+                              }}
+                            >
+                              {turn.scenario.ai_thoughts}
+                            </pre>
+                          </div>
+                        )}
+
+                        {turn.result?.verification_thoughts &&
+                          turn.result.verification_thoughts.length > 0 && (
+                            <div>
+                              <strong
+                                style={{
+                                  display: "block",
+                                  fontSize: "12px",
+                                  color: "var(--red-deep)",
+                                  marginBottom: "4px",
+                                }}
+                              >
+                                2. OCBC TREE Adversarial Verification Trace
+                              </strong>
+                              <ul
+                                style={{
+                                  margin: 0,
+                                  paddingLeft: "18px",
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  gap: "4px",
+                                  fontFamily: "var(--mono)",
+                                  fontSize: "11.5px",
+                                  color: "var(--ink)",
+                                }}
+                              >
+                                {turn.result.verification_thoughts.map((step, i) => (
+                                  <li key={i}>{step}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                      </div>
+                    </details>
+                  )}
+
+                  {/* AI Generated Answer Text */}
+                  <p>{turn.scenario.ai_answer}</p>
+
+                  {/* Action Buttons */}
+                  <div className="answer-actions">
+                    <button
+                      type="button"
+                      className="run"
+                      disabled={
+                        loading ||
+                        Boolean(turn.loadingAnswer) ||
+                        Boolean(turn.loadingVerify)
+                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void runForTurn(turn.turnId);
+                      }}
+                    >
+                      {turn.loadingVerify
+                        ? "Running TREE…"
+                        : turn.result
+                        ? "Re-run TREE"
+                        : "Run TREE"}
+                    </button>
+                    {!turn.result && (
+                      <span className="hint">
+                        Investigate, challenge &amp; verify this answer
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Verdict Card (renders when this turn is active and verified) */}
+              {turn.result && isActive && (
+                <Verdict
+                  result={turn.result}
+                  selectedId={selectedClaimId}
+                  onSelectClaim={selectClaim}
+                />
+              )}
+
+              {/* Compact Verdict Summary when viewing another turn */}
+              {turn.result && !isActive && (
+                <div
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: "10px",
+                    background: "var(--mist)",
+                    fontSize: "13px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <span>
+                    Verdict: <strong>{turn.result.overall.status}</strong> —{" "}
+                    {turn.result.overall.reason}
+                  </span>
+                  <span
+                    style={{
+                      color: "var(--green-deep)",
+                      fontWeight: 700,
+                      fontSize: "12px",
+                    }}
+                  >
+                    Expand Verdict &amp; Proof Tree →
+                  </span>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
-      <div className="composer">
-        <ProfilePicker />
-        <div className="suggest" role="group" aria-label="Other sample questions">
-          {meta?.scenarios.map((s) => (
-            <button key={s.id} className={`suggest-chip${s.id === askedId ? " on" : ""}`} onClick={() => onAsk(s.id)}>
-              {tagOf(s.title)}
-            </button>
-          ))}
-        </div>
-        <Composer onAsk={onAsk} placeholder="Ask another question…" />
-      </div>
+      <Composer onAsk={onAsk} placeholder="Ask a follow-up question…" />
     </section>
   );
 }

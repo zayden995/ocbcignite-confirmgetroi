@@ -93,11 +93,11 @@ class Claim(BaseModel):
 
 class Extraction(BaseModel):
     """Output of llm.extract(): entities, case parameters and atomic claims."""
-
     entities: dict[str, Any] = Field(default_factory=dict)
     params: dict[str, Any] = Field(default_factory=dict)
     conclusion: str
     claims: list[Claim]
+    thought_summary: str | None = None
 
 
 class NLIResult(BaseModel):
@@ -264,6 +264,8 @@ class ProofTree(BaseModel):
     employee: Employee
     question: str
     answer: str
+    ai_thoughts: str | None = None
+    verification_thoughts: list[str] = Field(default_factory=list)
     overall: Overall
     baseline: Baseline
     roots: list[RootNode]

@@ -2,21 +2,31 @@ import { useState } from "react";
 import { useTree } from "../../context/TreeContext";
 import { matchQuestion } from "./chatUtils";
 
-/** A real message box. This demo only knows its sample questions, so anything else gets a plain explanation. */
-export function Composer({ onAsk, placeholder, autoFocus }: { onAsk: (id: string) => void; placeholder: string; autoFocus?: boolean }) {
-  const { meta } = useTree();
+/** Accepts both sample questions and any free-form custom question. */
+export function Composer({
+  onAsk,
+  placeholder,
+  autoFocus,
+}: {
+  onAsk: (id: string) => void;
+  placeholder: string;
+  autoFocus?: boolean;
+}) {
+  const { meta, askCustomQuestion } = useTree();
   const [text, setText] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
 
-  const submit = () => {
+  const submit = async () => {
     if (!text.trim() || !meta) return;
-    const id = matchQuestion(text, meta.scenarios);
+    const q = text.trim();
+    const id = matchQuestion(q, meta.scenarios);
+    setText("");
+    setNotice(null);
     if (id) {
-      setText("");
-      setNotice(null);
       onAsk(id);
     } else {
-      setNotice("This demo only answers its sample questions. Pick one below, or type it as shown.");
+      onAsk("custom");
+      await askCustomQuestion(q);
     }
   };
 
@@ -26,7 +36,7 @@ export function Composer({ onAsk, placeholder, autoFocus }: { onAsk: (id: string
         className="composer-input"
         onSubmit={(e) => {
           e.preventDefault();
-          submit();
+          void submit();
         }}
       >
         <input
@@ -40,7 +50,11 @@ export function Composer({ onAsk, placeholder, autoFocus }: { onAsk: (id: string
           ➤
         </button>
       </form>
-      {notice && <p className="composer-notice" role="status">{notice}</p>}
+      {notice && (
+        <p className="composer-notice" role="status">
+          {notice}
+        </p>
+      )}
     </div>
   );
 }

@@ -18,7 +18,9 @@ export function EmployeeView() {
   const selected = result?.claims.find((c) => c.id === selectedId) ?? null;
 
   const ask = (id: string) => {
-    selectScenario(id);
+    if (id !== "custom") {
+      selectScenario(id);
+    }
     setAskedId(id);
   };
 
@@ -29,12 +31,8 @@ export function EmployeeView() {
       ) : (
         <div className="employee">
           <ChatPanel
-            askedId={askedId}
             onAsk={ask}
             onNewChat={() => setAskedId(null)}
-            result={result}
-            selectedId={selectedId}
-            onSelectClaim={setSelectedId}
           />
 
           <section className="tree-panel" aria-label="Proof Tree">

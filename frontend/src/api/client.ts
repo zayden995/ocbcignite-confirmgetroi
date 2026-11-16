@@ -36,3 +36,29 @@ export const verify = (body: {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
+
+export const askCustom = (body: {
+  question: string;
+  role: string;
+  region: string;
+  history?: Array<{ question: string; ai_answer: string }>;
+}) =>
+  request<ScenarioDetail>("/api/ask", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+export const verifyCustom = (body: {
+  question: string;
+  ai_answer: string;
+  ai_thoughts?: string | null;
+  role: string;
+  region: string;
+  params: Record<string, unknown>;
+}) =>
+  request<ProofTreeResult>("/api/verify-custom", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });

@@ -124,3 +124,77 @@ def admin_config():
 def verify(req: VerifyRequest):
     _check_employee(req.role, req.region)
     return run_tree(get_scenario(req.scenario_id), req.role, req.region, req.params, llm=get_llm(), corpus=corpus)
+
+class ChatTurnInput(BaseModel):
+    question: str
+    ai_answer: str
+
+
+class AskRequest(BaseModel):
+    question: str
+    role: str = "RM"
+    region: str = "SG"
+    history: list[ChatTurnInput] = Field(default_factory=list)
+
+
+class VerifyCustomRequest(BaseModel):
+    question: str
+    ai_answer: str
+    ai_thoughts: str | None = None
+    role: str
+    region: str
+    params: dict[str, Any] = Field(default_factory=dict)
+
+
+from .retrieval import _tokens
+
+
+def naive_rag_retrieve(question: str, k: int = 2) -> list:
+    """Simulates a standard metadata-blind top-k RAG retriever:
+    - Searches flat text chunks by keyword overlap only
+    - Does NOT filter out expired/superseded docs, unapproved wikis, or wrong regions/roles
+    - Does NOT traverse parent_doc_id (amendments) or supersedes links
+    """
+    q_tokens = _tokens(question)
+    scored = []
+    for rec in corpus.records.values():
+        p = rec.passage
+        # Standard flat RAG indexes primary documents; standalone amendment memos
+        # (parent_doc_id != None) aren't linked unless relational traversal is enabled
+        is_primary_doc = 1 if p.parent_doc_id is None else 0
+        overlap = len(q_tokens & _tokens(p.title + " " + p.text))
+        scored.append(((is_primary_doc, overlap), p))
+    scored.sort(key=lambda item: item[0], reverse=True)
+    return [p for (_, overlap), p in scored[:k] if overlap > 0] or [
+        rec.passage for rec in list(corpus.records.values())[:k]
+    ]
+
+
+@app.post("/api/ask")
+def ask_custom(req: AskRequest):
+    _check_employee(req.role, req.region)
+    llm = get_llm()
+    if llm.is_mock:
+        raise HTTPException(400, "Switch TREE_LLM_PROVIDER=gemini in backend/.env to ask custom questions.")
+    # Naive bot only sees top-2 flat text hits (no governance filters, no amendment graph traversal)
+    naive_hits = naive_rag_retrieve(req.question, k=2)
+    answer = llm.generate_answer(req.question, naive_hits, role=req.role, region=req.region)
+    return {
+        "id": "custom",
+        "title": "Custom question",
+        "question": req.question,
+        "ai_answer": answer,
+        "employee": {"role": req.role, "region": req.region},
+        "citations": [],
+    }
+
+@app.post("/api/verify-custom")
+def verify_custom(req: VerifyCustomRequest):
+    _check_employee(req.role, req.region)
+    custom_scenario = {
+        "id": "custom",
+        "title": "Custom question",
+        "question": req.question,
+        "ai_answer": req.ai_answer,
+    }
+    return run_tree(custom_scenario, req.role, req.region, req.params, llm=get_llm(), corpus=corpus)
