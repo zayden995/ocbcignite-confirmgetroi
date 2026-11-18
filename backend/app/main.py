@@ -12,7 +12,7 @@ from .challenge import COUNTER_TEMPLATES
 from .corpus import load_approved_sources, load_corpus
 from .errors import NoScriptedFixture, ScenarioNotFound
 from .filters import passage_state
-from .llm import get_llm
+from .llm import get_llm, get_scenario_llm
 from .models import Employee
 from .pipeline import MOCK_BADGE, run_tree
 from .scenarios import get_scenario, load_scenarios, load_slot_defs
@@ -74,7 +74,7 @@ def meta():
 @app.get("/api/summary")
 def summary():
     """Runs every scenario through the real pipeline; labelled as a scripted demo set, not a benchmark."""
-    return run_summary(corpus, get_llm())
+    return run_summary(corpus, get_scenario_llm())
 
 
 @app.get("/api/scenarios/{scenario_id}")
@@ -131,7 +131,9 @@ def admin_config():
 @app.post("/api/verify")
 def verify(req: VerifyRequest):
     _check_employee(req.role, req.region)
-    return run_tree(get_scenario(req.scenario_id), req.role, req.region, req.params, llm=get_llm(), corpus=corpus)
+    return run_tree(
+        get_scenario(req.scenario_id), req.role, req.region, req.params, llm=get_scenario_llm(), corpus=corpus
+    )
 
 class ChatTurnInput(BaseModel):
     question: str

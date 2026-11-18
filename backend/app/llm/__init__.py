@@ -18,3 +18,12 @@ def get_llm() -> LLM:
         _INSTANCE = ProviderLLM(config.LLM_PROVIDER)
         _PROVIDER_NAME = config.LLM_PROVIDER
     return _INSTANCE
+
+
+def get_scenario_llm() -> LLM:
+    """The model for the five scripted demo scenarios: always the scripted fixtures.
+
+    Even with a Gemini key the scenarios keep their designed verdicts and answer instantly; Gemini
+    answers only the questions people type (/api/ask and /api/verify-custom use get_llm()).
+    """
+    return MockLLM()

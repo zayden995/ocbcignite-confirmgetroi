@@ -30,5 +30,6 @@ def test_unknown_scenario_is_404_and_bad_role_is_422():
 
 def test_real_provider_stub_fails_loudly_as_501(monkeypatch):
     monkeypatch.setattr(config, "LLM_PROVIDER", "somevendor")
-    r = client.post("/api/verify", json={"scenario_id": "s1_overlooked_exception", "role": "RM", "region": "SG"})
+    body = {"question": "What rate can I quote?", "ai_answer": "Quote 3.20% p.a.", "role": "RM", "region": "SG"}
+    r = client.post("/api/verify-custom", json=body)
     assert r.status_code == 501 and "somevendor" in r.json()["detail"]

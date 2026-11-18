@@ -4,11 +4,12 @@ Hackathon prototype for the OCBC Ignite Innovation Challenge, Problem Statement 
 
 TREE does not stop at finding evidence that supports an AI answer. It also tries to **disprove** it, then shows the result as an interactive Proof Tree: **Investigate** (evidence, authenticity, applicability, slot coverage) -> **Challenge** (counter-queries for exceptions, conflicts, superseded or inapplicable policy, unsupported assumptions) -> **Verify** (a deterministic matrix). It is compared side by side with a citation-only baseline.
 
-> **Two modes.** With a `GEMINI_API_KEY` set, every model call goes to Google Gemini (see "Gemini
-> mode" below). Without a key the app falls back to the **MOCK LLM (scripted outputs)**: every model
-> call returns scripted fixtures (`backend/app/llm/fixtures.json`), the header shows a MOCK badge, and
-> the SE/SC scores are derived from those scripted outputs, so they are **not measured results**. In
-> both modes all data is **Synthetic - not real OCBC policy**.
+> **Two modes.** The five scripted demo scenarios always run on the **MOCK LLM (scripted outputs)**:
+> their model calls return scripted fixtures (`backend/app/llm/fixtures.json`), so their verdicts are the
+> designed ones, and the SE/SC scores are derived from those scripted outputs, so they are **not measured
+> results**. Typed questions need Google Gemini and work only when a `GEMINI_API_KEY` is set (see
+> "Gemini mode" below); without a key the header shows a MOCK badge. In both modes all data is
+> **Synthetic - not real OCBC policy**.
 
 ## Run it
 
@@ -41,17 +42,20 @@ GEMINI_API_KEY=<your key>
 # optional: TREE_LLM_PROVIDER=mock         (forces the scripted fixtures even with a key)
 ```
 
-A key alone switches the whole app to Gemini: the MOCK badge disappears, and Gemini does `extract()`
-and `nli()` for the five scenarios as well as for typed questions. The scenarios' AI answers are still
-the scripted text, but their verdicts now come from the model, so they can differ from the designed
-ones and vary between runs ("Run all 5 scenarios" shows where they match). `POST /api/ask` answers a
+A key switches typed questions to Gemini and the header's MOCK badge disappears. The five scripted
+scenarios (`POST /api/verify`, and "Run all 5 scenarios" via `GET /api/summary`) stay on the scripted
+fixtures even with a key, and their results keep the MOCK label. This is deliberate: on Gemini their
+verdicts sometimes differed from the designed ones, each check took 36 to 157 seconds, and running them
+used up the free-tier quota. `POST /api/ask` answers a
 typed question the way a plain chatbot would (top-2 keyword retrieval, no governance filters), and
 `POST /api/verify-custom` runs TREE on that answer. The server keeps no chat history: the browser sends
 the earlier turns of the conversation with each request, so one visitor's questions never reach
 another's. If a Gemini call fails (bad key, quota, outage) the app reports the reason; it does not
 silently fall back to the mock. The corpus is still synthetic.
 
-Without a key the app runs on the MOCK LLM, which only knows the five scripted questions. The tests
+Without a key the app runs on the MOCK LLM, which only knows the five scripted questions. If Gemini
+replies "503 UNAVAILABLE ... high demand", the chosen model is overloaded at Google; wait, or set
+`TREE_GEMINI_MODEL` to another model (`gemini-3.6-flash` and `gemini-3.5-flash` have both worked). The tests
 always use the mock or a faked network call (`backend/tests/conftest.py`), so they need no key and
 ignore `backend/.env`.
 
@@ -62,7 +66,8 @@ services. `vercel.json` builds `frontend/` (Vite) and `backend/` (FastAPI, `app.
 `/api/*` to the backend and everything else to the frontend, so the app calls `/api` on its own domain
 and needs no CORS or URL settings. The backend reads its synthetic data from `backend/data/`, which is
 why that folder lives inside `backend/`. For Gemini mode on the deployed site, add `GEMINI_API_KEY`
-under the Vercel project's Environment Variables and redeploy (there is no `.env` file on Vercel).
+(and optionally `TREE_GEMINI_MODEL`) under the Vercel project's Environment Variables and redeploy
+(there is no `.env` file on Vercel).
 Without it the deployed site runs on the MOCK LLM: the five scenarios work, and typed questions return
 an error asking for the key.
 
@@ -131,15 +136,15 @@ view inspects one run; it does not aggregate across runs).
 
 ## What is mocked (honest list)
 
-- **The LLM, when no key is set.** `extract()` and `nli()` return scripted fixtures keyed to the
-  scenarios, and nothing is measured. With `GEMINI_API_KEY` set they call Gemini instead
+- **The LLM for the five scenarios, always.** `extract()` and `nli()` return scripted fixtures keyed to
+  the scenarios, and nothing is measured. Typed questions call Gemini when `GEMINI_API_KEY` is set
   (`backend/app/llm/provider.py`, see "Gemini mode" above). Setting `TREE_LLM_PROVIDER` to any name
   other than `mock` or `gemini` raises `NotImplementedError`.
-- **Proposed corrections** in mock mode are scripted text; in Gemini mode they are built from the
-  policy passage that drove the verdict.
-- **SE / SC scores** shown on branches come from the scripted model outputs in mock mode, where they
-  are not measured. In Gemini mode they are the scores the model returned.
-- **The scenarios' AI answers** are scripted text in both modes.
+- **Proposed corrections** for the scenarios are scripted text; for typed questions they are built from
+  the policy passage that drove the verdict.
+- **SE / SC scores** shown on branches come from the scripted model outputs for the scenarios, where
+  they are not measured. For typed questions they are the scores Gemini returned.
+- **The scenarios' AI answers** are scripted text.
 - **The five scenarios** are a scripted demo set written to contain these failures. The summary strip
   (1 of 5 citation-only vs 5 of 5 TREE) is labelled "Scripted demo set, not a benchmark" and is not an
   accuracy figure.
