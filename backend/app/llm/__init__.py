@@ -21,7 +21,7 @@ def get_llm() -> LLM:
 
 
 def get_scenario_llm() -> LLM:
-    """The model for the five scripted demo scenarios: always the scripted fixtures.
+    """The model for the four scripted demo scenarios: always the scripted fixtures.
 
     Even with a Gemini key the scenarios keep their designed verdicts and answer instantly; Gemini
     answers only the questions people type (/api/ask and /api/verify-custom use get_llm()).

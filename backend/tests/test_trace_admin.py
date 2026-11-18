@@ -14,7 +14,7 @@ client = TestClient(app)
 
 @pytest.fixture(scope="module")
 def tree():
-    return run_tree(get_scenario("s1_overlooked_exception"), "RM", "SG", {}, llm=MockLLM(), corpus=load_corpus(), today=DEMO_DATE)
+    return run_tree(get_scenario("s1_overruled_policy"), "RM", "SG", {}, llm=MockLLM(), corpus=load_corpus(), today=DEMO_DATE)
 
 
 def c3(tree):

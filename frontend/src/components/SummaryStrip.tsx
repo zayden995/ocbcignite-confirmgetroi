@@ -40,7 +40,7 @@ export function SummaryStrip() {
           </div>
         )}
         <button className="ghost-run" onClick={run} disabled={loading}>
-          {loading ? "Running…" : summary ? "Run again" : "Run all 5 scenarios"}
+          {loading ? "Running…" : summary ? "Run again" : "Run all 4 scenarios"}
         </button>
       </div>
 
@@ -67,7 +67,7 @@ export function SummaryStrip() {
             ))}
           </ul>
           <p className="note">
-            These five scenarios were written to contain the failures TREE looks for
+            These four scenarios were written to contain the failures TREE looks for
             {summary.llm_badge
               ? `, and the model outputs are scripted (${summary.llm_badge}).`
               : ". The AI answers are scripted; the checking is done by the live model, so results can vary between runs."}

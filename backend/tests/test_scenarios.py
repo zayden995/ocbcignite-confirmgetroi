@@ -1,4 +1,4 @@
-"""All five scenarios, the Malaysia and input-supplied variants, and baseline-vs-TREE."""
+"""All four scenarios, the Malaysia and input-supplied variants, and baseline-vs-TREE."""
 import pytest
 from fastapi.testclient import TestClient
 
@@ -29,18 +29,17 @@ def claim(tree, cid):
 
 # --- every scenario ---------------------------------------------------------
 
-def test_there_are_five_scenarios():
-    assert len(IDS) == 5
+def test_there_are_four_scenarios():
+    assert len(IDS) == 4
 
 
-def test_two_scenarios_have_three_or_four_branches(corpus):
+def test_branch_counts(corpus):
     counts = {sid: len(run(corpus, sid).claims) for sid in IDS}
     assert counts == {
-        "s1_overlooked_exception": 3,
+        "s1_overruled_policy": 4,
         "s2_conflicting_documents": 2,
-        "s3_outdated_or_inapplicable": 1,
-        "s4_unsupported_assumption": 4,
-        "s5_clean_control": 1,
+        "s3_unsupported_assumption": 4,
+        "s4_clean_control": 1,
     }
 
 
@@ -92,35 +91,37 @@ def test_s2_equal_authority_conflict_is_unresolved_not_refuted(corpus):
     assert c1.proposed_correction.passage_id == "FD-201#p1"
 
 
-# --- 3. outdated or inapplicable ------------------------------------------
+# --- 1. the hero's outdated transfer limit (the exception branch is in test_pipeline_hero.py) ---
 
-def test_s3_cited_policy_is_expired_and_superseded(corpus):
-    tree = run(corpus, "s3_outdated_or_inapplicable")
+def test_s1_cited_transfer_limit_is_expired_and_superseded(corpus):
+    tree = run(corpus, "s1_overruled_policy")
     roots = {r.id: r for r in tree.roots}
     assert roots["FD-300#p1"].state == "filtered_expired"
     assert roots["FD-301#p1"].state == "active"
-    c1 = claim(tree, "s3.c1")
-    assert c1.status == "Refuted" and c1.se == 0.0 and c1.sc == 0.92
-    assert c1.failure_types == ["outdated_or_inapplicable"]
-    assert c1.proposed_correction.passage_id == "FD-301#p1" and "100,000" in c1.proposed_correction.text
+    c4 = claim(tree, "s1.c4")
+    assert c4.status == "Refuted" and c4.se == 0.0 and c4.sc == 0.92
+    assert c4.failure_types == ["outdated_or_inapplicable"]
+    assert c4.proposed_correction.passage_id == "FD-301#p1" and "100,000" in c4.proposed_correction.text
     assert any(e.kind == "supersedes" and e.source == "FD-301#p1" and e.target == "FD-300#p1" for e in tree.edges)
 
 
-def test_s3_in_malaysia_the_singapore_policy_is_inapplicable(corpus):
-    tree = run(corpus, "s3_outdated_or_inapplicable", region="MY")
-    c1 = claim(tree, "s3.c1")
+def test_s1_in_malaysia_the_singapore_transfer_limit_is_inapplicable(corpus):
+    tree = run(corpus, "s1_overruled_policy", region="MY")
+    c4 = claim(tree, "s1.c4")
     assert tree.overall.status == "Refuted"
     assert "FD-301#p1" not in {r.id for r in tree.roots}  # the SG-only policy is not even retrieved
-    assert c1.status == "Refuted" and c1.failure_types == ["outdated_or_inapplicable"]
-    assert c1.proposed_correction.passage_id == "FD-302#p1"
-    assert "DuitNow" in c1.proposed_correction.text  # scripted text follows the evidence, not the SG variant
+    assert c4.status == "Refuted" and c4.failure_types == ["outdated_or_inapplicable"]
+    assert c4.proposed_correction.passage_id == "FD-302#p1"
+    assert "DuitNow" in c4.proposed_correction.text  # scripted text follows the evidence, not the SG variant
+    # the FAST exception holds in Malaysia too, so that branch stays red
+    assert claim(tree, "s1.c3").status == "Refuted"
 
 
-# --- 4. unsupported assumption --------------------------------------------
+# --- 3. unsupported assumption --------------------------------------------
 
-def test_s4_missing_inputs_make_one_branch_unresolved(corpus):
-    tree = run(corpus, "s4_unsupported_assumption")
-    c4 = claim(tree, "s4.c4")
+def test_s3_missing_inputs_make_one_branch_unresolved(corpus):
+    tree = run(corpus, "s3_unsupported_assumption")
+    c4 = claim(tree, "s3.c4")
     # four branches: the three plain facts hold, only the one that assumes this deposit's details is open
     assert [c.status for c in tree.claims] == ["Verified", "Verified", "Verified", "Unresolved"]
     assert tree.overall.status == "Unresolved"
@@ -142,25 +143,25 @@ def test_s4_missing_inputs_make_one_branch_unresolved(corpus):
         ({"deposit_amount": 20000}, "Unresolved", ["unsupported_assumption"]),                   # still missing the channel
     ],
 )
-def test_s4_supplying_inputs_reruns_the_real_conditions(corpus, params, status, failure):
-    tree = run(corpus, "s4_unsupported_assumption", params=params)
-    c4 = claim(tree, "s4.c4")
+def test_s3_supplying_inputs_reruns_the_real_conditions(corpus, params, status, failure):
+    tree = run(corpus, "s3_unsupported_assumption", params=params)
+    c4 = claim(tree, "s3.c4")
     assert (c4.status, c4.failure_types) == (status, failure)
     # the other three branches never depended on those inputs
-    assert [claim(tree, f"s4.c{i}").status for i in (1, 2, 3)] == ["Verified"] * 3
+    assert [claim(tree, f"s3.c{i}").status for i in (1, 2, 3)] == ["Verified"] * 3
 
 
-def test_s4_scripted_correction_follows_the_outcome(corpus):
-    small = claim(run(corpus, "s4_unsupported_assumption", params={"deposit_amount": 5000, "channel": "GIRO"}), "s4.c4")
-    fast = claim(run(corpus, "s4_unsupported_assumption", params={"deposit_amount": 20000, "channel": "FAST"}), "s4.c4")
+def test_s3_scripted_correction_follows_the_outcome(corpus):
+    small = claim(run(corpus, "s3_unsupported_assumption", params={"deposit_amount": 5000, "channel": "GIRO"}), "s3.c4")
+    fast = claim(run(corpus, "s3_unsupported_assumption", params={"deposit_amount": 20000, "channel": "FAST"}), "s3.c4")
     assert "minimum" in small.proposed_correction.text
     assert "FAST" in fast.proposed_correction.text and fast.proposed_correction.passage_id == "FD-102#p1"
 
 
-# --- 5. clean control ---------------------------------------------------------
+# --- 4. clean control ---------------------------------------------------------
 
-def test_s5_clean_control_verifies_with_no_flags(corpus):
-    tree = run(corpus, "s5_clean_control")
+def test_s4_clean_control_verifies_with_no_flags(corpus):
+    tree = run(corpus, "s4_clean_control")
     assert tree.overall.status == "Verified"
     for c in tree.claims:
         assert c.status == "Verified" and c.failure_types == [] and c.missing_slots == []
@@ -178,19 +179,19 @@ def test_s5_clean_control_verifies_with_no_flags(corpus):
         ("RM", "MY", "Refuted", ["outdated_or_inapplicable"]),            # Singapore-only, and Malaysia says no bonus
     ],
 )
-def test_s5_same_answer_different_employee(corpus, role, region, status, failure):
-    c1 = claim(run(corpus, "s5_clean_control", role=role, region=region), "s5.c1")
+def test_s4_same_answer_different_employee(corpus, role, region, status, failure):
+    c1 = claim(run(corpus, "s4_clean_control", role=role, region=region), "s4.c1")
     assert (c1.status, c1.failure_types) == (status, failure)
 
 
-def test_s5_role_and_region_explain_themselves_in_the_payload(corpus):
-    cc = run(corpus, "s5_clean_control", role="CC")
+def test_s4_role_and_region_explain_themselves_in_the_payload(corpus):
+    cc = run(corpus, "s4_clean_control", role="CC")
     root = next(r for r in cc.roots if r.id == "FD-320#p1")
     assert root.state == "filtered_inapplicable"
     assert "CC" in root.state_detail and "RM" in root.state_detail  # says which roles the policy is for
-    assert "Relationship Managers" in claim(cc, "s5.c1").proposed_correction.text
-    my = run(corpus, "s5_clean_control", region="MY")
-    assert claim(my, "s5.c1").proposed_correction.passage_id == "FD-321#p1"
+    assert "Relationship Managers" in claim(cc, "s4.c1").proposed_correction.text
+    my = run(corpus, "s4_clean_control", region="MY")
+    assert claim(my, "s4.c1").proposed_correction.passage_id == "FD-321#p1"
 
 
 # --- baseline vs TREE ---------------------------------------------------------
@@ -199,16 +200,16 @@ def test_baseline_vs_tree_on_the_scripted_set(corpus):
     s = run_summary(corpus, MockLLM())
     assert s["label"] == SUMMARY_LABEL == "Scripted demo set, not a benchmark"
     assert s["llm_badge"] == "MOCK LLM (scripted outputs)"
-    assert s["total"] == 5
-    assert s["tree_correct"] == 5
+    assert s["total"] == 4
+    assert s["tree_correct"] == 4
     assert s["baseline_correct"] == 1  # only the clean control: it never searches for counter-evidence
     by_id = {r["id"]: r for r in s["scenarios"]}
-    assert by_id["s5_clean_control"]["baseline_correct"] is True
-    assert all(not by_id[i]["baseline_correct"] for i in IDS if i != "s5_clean_control")
+    assert by_id["s4_clean_control"]["baseline_correct"] is True
+    assert all(not by_id[i]["baseline_correct"] for i in IDS if i != "s4_clean_control")
     assert all(r["tree"] == r["expected"] for r in s["scenarios"])
 
 
 def test_summary_endpoint():
     body = client.get("/api/summary").json()
     assert body["label"] == "Scripted demo set, not a benchmark"
-    assert (body["baseline_correct"], body["tree_correct"], body["total"]) == (1, 5, 5)
+    assert (body["baseline_correct"], body["tree_correct"], body["total"]) == (1, 4, 4)

@@ -32,7 +32,7 @@ def test_an_explicit_provider_setting_wins_over_the_key():
 
 def test_mock_extract_returns_scripted_claims_for_the_scenario():
     ex = MockLLM().extract(S1["question"], S1["ai_answer"])
-    assert [c.id for c in ex.claims] == ["s1.c1", "s1.c2", "s1.c3"]
+    assert [c.id for c in ex.claims] == ["s1.c1", "s1.c2", "s1.c3", "s1.c4"]
     assert ex.params["channel"] == "FAST"
     assert ex.claims[2].required_slots == ["channel"]
 

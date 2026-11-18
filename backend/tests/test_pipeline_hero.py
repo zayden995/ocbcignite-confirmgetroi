@@ -1,4 +1,4 @@
-"""Hero scenario (overlooked exception) end to end, plus retrieval and baseline."""
+"""Hero scenario (overruled by another document) end to end, plus retrieval and baseline."""
 import pytest
 
 from app.config import DEMO_DATE
@@ -17,7 +17,7 @@ def corpus():
 
 @pytest.fixture(scope="module")
 def tree(corpus):
-    return run_tree(get_scenario("s1_overlooked_exception"), "RM", "SG", {}, llm=MockLLM(), corpus=corpus, today=DEMO_DATE)
+    return run_tree(get_scenario("s1_overruled_policy"), "RM", "SG", {}, llm=MockLLM(), corpus=corpus, today=DEMO_DATE)
 
 
 def claim(tree, cid):
@@ -55,7 +55,8 @@ def test_overall_is_refuted_while_baseline_passes(tree):
 
 
 def test_claim_statuses(tree):
-    assert [c.status for c in tree.claims] == ["Verified", "Verified", "Refuted"]  # three branches: two green, one red
+    # four branches: two green, then two red (the missed FAST exception and the out-of-date transfer limit)
+    assert [c.status for c in tree.claims] == ["Verified", "Verified", "Refuted", "Refuted"]
 
 
 def test_exception_claim_details(tree):

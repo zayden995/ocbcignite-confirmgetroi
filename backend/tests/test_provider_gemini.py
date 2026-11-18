@@ -107,9 +107,9 @@ def test_verify_custom_carries_the_channel_over_from_the_history_sent_with_the_r
 
 
 def test_scripted_scenarios_stay_on_the_mock_even_with_a_key(gemini):
-    # the five demo scenarios keep their designed verdicts and answer instantly; Gemini only answers typed questions
+    # the four demo scenarios keep their designed verdicts and answer instantly; Gemini only answers typed questions
     assert client.get("/api/meta").json()["llm_badge"] is None  # the header reflects typed questions, which use Gemini
-    r = client.post("/api/verify", json={"scenario_id": "s1_overlooked_exception", "role": "RM", "region": "SG"})
+    r = client.post("/api/verify", json={"scenario_id": "s1_overruled_policy", "role": "RM", "region": "SG"})
     assert r.status_code == 200
     body = r.json()
     assert (body["llm_mode"], body["llm_badge"]) == ("mock", "MOCK LLM (scripted outputs)")
@@ -120,7 +120,7 @@ def test_scripted_scenarios_stay_on_the_mock_even_with_a_key(gemini):
 def test_run_all_scenarios_uses_the_mock_even_with_a_key(gemini):
     s = client.get("/api/summary").json()
     assert s["llm_badge"] == "MOCK LLM (scripted outputs)"
-    assert s["total"] == 5 and s["tree_correct"] == 5
+    assert s["total"] == 4 and s["tree_correct"] == 4
     assert gemini.prompts == []
 
 
