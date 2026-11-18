@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTree } from "../../context/TreeContext";
 import type { ProofTreeResult, Status } from "../../types";
 import { FailureChips, STATUS_CLASS, StatusBadge } from "../common";
-import { HEADLINE, nextStep, plainWhy } from "./chatUtils";
+import { decidingClaims, HEADLINE, nextStep, plainWhy } from "./chatUtils";
 import { MissingInputForm } from "./MissingInputForm";
 
 const ICON: Record<Status, string> = { Refuted: "✖", Unresolved: "?", Verified: "✔" };
@@ -20,6 +20,10 @@ export function Verdict({
   const status = result.overall.status;
   const why = plainWhy(result, meta);
   const step = nextStep(result);
+  // several claims share the verdict (e.g. two Refuted ones): list each reason and each correction, numbered to match.
+  // Missing inputs keep the single "ask the customer for" step, which already covers every missing field.
+  const deciding = decidingClaims(result);
+  const several = deciding.length > 1 && !(status === "Unresolved" && result.missing_inputs.length > 0);
   const agrees = result.baseline.status === status;
 
   // fields the form covers: what the employee already reported (so they can change it) plus anything still missing
@@ -37,10 +41,25 @@ export function Verdict({
         </div>
       </div>
 
-      <p className="verdict-why"><strong>Why: </strong>{why}</p>
+      {several ? (
+        <div className="verdict-why">
+          <strong>Why: </strong>the answer has {deciding.length} problems.
+          <ol className="verdict-list">
+            {deciding.map((c) => <li key={c.id}>{plainWhy(result, meta, c)}</li>)}
+          </ol>
+        </div>
+      ) : (
+        <p className="verdict-why"><strong>Why: </strong>{why}</p>
+      )}
       <div className="verdict-do">
         <strong>{step.label}</strong>
-        {step.text && <p>{step.text}</p>}
+        {several ? (
+          <ol className="verdict-list">
+            {deciding.map((c) => <li key={c.id}>{nextStep(result, c).text}</li>)}
+          </ol>
+        ) : (
+          step.text && <p>{step.text}</p>
+        )}
         {canReport && !reporting && (
           <button className="ghost-run report-missing" onClick={() => setReporting(true)}>Report missing input</button>
         )}

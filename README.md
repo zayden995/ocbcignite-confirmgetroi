@@ -78,7 +78,9 @@ To try the same routing locally: `npx vercel dev --local` (then open http://loca
 - **Employee** (`http://localhost:5173/`): opens like a new chat ("Good morning, how may I help you?").
   Tap a starter or type one of the sample questions (in Gemini mode, any question), read the AI's
   answer, press **Run TREE**. The result opens with one large verdict: the label (Verified,
-  Unresolved or Refuted), why in one sentence, and what to say or do instead. Claim-by-claim
+  Unresolved or Refuted), why in one sentence, and what to say or do instead. When several claims share
+  the verdict (scenario 1 has two Refuted ones), it lists each reason and each correction, numbered to
+  match. Claim-by-claim
   detail is folded away under it. Beside it is the **Proof Tree**: an illustrated tree where each branch
   is a claim and its colour is the claim's status (green Verified, amber Unresolved, red Refuted), the
   trunk is the AI's conclusion, and the roots are the source passages. Hover anything for status

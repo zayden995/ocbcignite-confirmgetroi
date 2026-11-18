@@ -29,6 +29,12 @@ export function worstClaim(result: ProofTreeResult): ClaimNodeData | null {
   );
 }
 
+/** Every claim that shares the verdict's status (all the Refuted ones for a Refuted answer), in answer order. */
+export function decidingClaims(result: ProofTreeResult): ClaimNodeData[] {
+  const worst = worstClaim(result);
+  return worst ? result.claims.filter((c) => c.status === worst.status) : [];
+}
+
 export const HEADLINE: Record<Status, string> = {
   Refuted: "Don't use this answer.",
   Unresolved: "Hold off: this can't be confirmed yet.",
@@ -36,8 +42,11 @@ export const HEADLINE: Record<Status, string> = {
 };
 
 /** One plain sentence on why the deciding claim failed. Built only from the payload. */
-export function plainWhy(result: ProofTreeResult, meta: Meta | null): string {
-  const claim = worstClaim(result);
+export function plainWhy(
+  result: ProofTreeResult,
+  meta: Meta | null,
+  claim: ClaimNodeData | null = worstClaim(result),
+): string {
   if (!claim) return "Every claim is backed by a current policy that applies to you, and nothing contradicts it.";
 
   const root = (id: string) => result.roots.find((r) => r.id === id);
@@ -79,8 +88,10 @@ export function plainWhy(result: ProofTreeResult, meta: Meta | null): string {
 }
 
 /** What the employee should do next, in the imperative. */
-export function nextStep(result: ProofTreeResult): { label: string; text: string } {
-  const claim = worstClaim(result);
+export function nextStep(
+  result: ProofTreeResult,
+  claim: ClaimNodeData | null = worstClaim(result),
+): { label: string; text: string } {
   if (!claim) return { label: "You can give this answer to the customer.", text: "" };
   if (claim.status === "Unresolved" && result.missing_inputs.length > 0) {
     return { label: "Before you answer, ask the customer for:", text: result.missing_inputs.map((m) => m.label).join(", ") + "." };
