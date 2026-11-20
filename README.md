@@ -2,14 +2,11 @@
 
 Hackathon prototype for the OCBC Ignite Innovation Challenge, Problem Statement 1: how can an employee judge whether an AI agent's answer is trustworthy?
 
-TREE does not stop at finding evidence that supports an AI answer. It also tries to **disprove** it, then shows the result as an interactive Proof Tree: **Investigate** (evidence, authenticity, applicability, slot coverage) -> **Challenge** (counter-queries for exceptions, conflicts, superseded or inapplicable policy, unsupported assumptions) -> **Verify** (a deterministic matrix). It is compared side by side with a citation-only baseline.
+The decision assessment API checks whether an AI answer covers the decisions an employee needs to make. It identifies those decisions from the question, applies synthetic policy to employee-supplied facts, and returns a verdict with evidence for each required decision.
 
-> **Two modes.** The four scripted demo scenarios always run on the **MOCK LLM (scripted outputs)**:
-> their model calls return scripted fixtures (`backend/app/llm/fixtures.json`), so their verdicts are the
-> designed ones, and the SE/SC scores are derived from those scripted outputs, so they are **not measured
-> results**. Typed questions need Google Gemini and work only when a `GEMINI_API_KEY` is set (see
-> "Gemini mode" below); without a key the header shows a MOCK badge. In both modes all data is
-> **Synthetic - not real OCBC policy**.
+The four original scenarios demonstrate claim-level verification. TREE checks each claim's sources and policy conditions, looks for conflicting evidence, then compares the result with a citation-only check.
+
+> **Synthetic demo.** The decision assessment fixture and the four claim scenarios run offline. Typed chat uses Gemini when configured. All policy data and rates are synthetic.
 
 ## Run it
 
@@ -28,10 +25,17 @@ npm install
 npm run dev          # open http://localhost:5173  (the dev server proxies /api to :8000)
 ```
 
-Tests: `cd backend; .venv\Scripts\python.exe -m pip install -r requirements-dev.txt; .venv\Scripts\python.exe -m pytest -q`
-(`requirements.txt` is what the deployed app needs; `requirements-dev.txt` adds the test packages.)
+## Try the decision verifier API
 
-### Gemini mode (the default once a key is set)
+Start the backend, then run this from the repository root.
+
+```powershell
+Invoke-RestMethod -Method Post -Uri 'http://localhost:8000/api/v2/assess?mode=fixture' -ContentType 'application/json' -InFile 'backend/data/decision_fixture.json'
+```
+
+The fixture asks for the standard rate and checks one S$150,000 FAST transfer. The rate-only answer gives **Hold · 1/2** because it omits the transfer decision. The response cites **FD-301 v2**, which sets a **S$100,000** cap, and includes a suggested repair.
+
+## Gemini mode (the default once a key is set)
 
 Create `backend/.env` (git-ignored; never commit it) with a key from Google AI Studio and restart the
 backend:
@@ -42,22 +46,26 @@ GEMINI_API_KEY=<your key>
 # optional: TREE_LLM_PROVIDER=mock         (forces the scripted fixtures even with a key)
 ```
 
-A key switches typed questions to Gemini and the header's MOCK badge disappears. The four scripted
-scenarios (`POST /api/verify`, and "Run all 4 scenarios" via `GET /api/summary`) stay on the scripted
-fixtures even with a key, and their results keep the MOCK label. This is deliberate: on Gemini their
-verdicts sometimes differed from the designed ones, each check took 36 to 157 seconds, and running them
-used up the free-tier quota. `POST /api/ask` answers a
-typed question the way a plain chatbot would (top-2 keyword retrieval, no governance filters), and
-`POST /api/verify-custom` runs TREE on that answer. The server keeps no chat history: the browser sends
-the earlier turns of the conversation with each request, so one visitor's questions never reach
-another's. If a Gemini call fails (bad key, quota, outage) the app reports the reason; it does not
-silently fall back to the mock. The corpus is still synthetic.
+With a key, `POST /api/ask` generates a typed chat answer from the top two keyword matches. The chat verifies claims through `POST /api/verify-custom`. Call `POST /api/v2/assess?mode=live` directly for a live decision assessment.
 
-Without a key the app runs on the MOCK LLM, which only knows the four scripted questions. If Gemini
-replies "503 UNAVAILABLE ... high demand", the chosen model is overloaded at Google; wait, or set
-`TREE_GEMINI_MODEL` to another model (`gemini-3.6-flash` and `gemini-3.5-flash` have both worked). The tests
-always use the mock or a faked network call (`backend/tests/conftest.py`), so they need no key and
-ignore `backend/.env`.
+The browser sends conversation history with each request. Gemini errors are shown in the app. The four original scenarios and **Run all 4 scenarios** continue using offline fixtures when a key is configured.
+
+## Verify locally
+
+Run each block from the repository root.
+
+```powershell
+cd frontend
+npm run build
+```
+
+```powershell
+cd backend
+.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.venv\Scripts\python.exe -m pytest -q
+```
+
+The backend suite includes the 15 public decision cases through `POST /api/v2/assess` and the original claim scenarios. Tests use offline fixtures or simulated provider responses.
 
 ## Deploy to Vercel
 
@@ -68,16 +76,14 @@ and needs no CORS or URL settings. The backend reads its synthetic data from `ba
 why that folder lives inside `backend/`. For Gemini mode on the deployed site, add `GEMINI_API_KEY`
 (and optionally `TREE_GEMINI_MODEL`) under the Vercel project's Environment Variables and redeploy
 (there is no `.env` file on Vercel).
-Without it the deployed site runs on the MOCK LLM: the four scenarios work, and typed questions return
-an error asking for the key.
+The deployed site can run all four claim scenarios without a Gemini key. Typed chat requires the key.
 
 To try the same routing locally: `npx vercel dev --local` (then open http://localhost:3000).
 
-## Two views
+## Claim scenarios and admin tools
 
 - **Employee** (`http://localhost:5173/`): opens like a new chat ("Good morning, how may I help you?").
-  Tap a starter or type one of the sample questions (in Gemini mode, any question), read the AI's
-  answer, press **Run TREE**. The result opens with one large verdict: the label (Verified,
+  Open one of the four original starters, read the AI's answer, then press **Run TREE**. The result opens with one large verdict: the label (Verified,
   Unresolved or Refuted), why in one sentence, and what to say or do instead. When several claims share
   the verdict (scenario 1 has two Refuted ones), it lists each reason and each correction, numbered to
   match. Claim-by-claim
@@ -130,16 +136,9 @@ verdict (1 of 4 vs 4 of 4). It is labelled **Scripted demo set, not a benchmark*
 written to contain these failures and the model outputs are scripted, so it illustrates the pipeline
 and is not a measured accuracy.
 
-## Status
+## Demo assumptions
 
-All build steps are done: four scenarios, the Malaysia variant of scenario 1, the role variants of
-scenario 4, the "Report missing input" form, the summary strip and the admin inspector work end to end.
-Not built on purpose: the reviewer queue, reliability dashboard and cross-answer blast radius (the admin
-view inspects one run; it does not aggregate across runs).
-
-## What is mocked (honest list)
-
-- **The LLM for the four scenarios, always.** `extract()` and `nli()` return scripted fixtures keyed to
+- **The original four scenarios.** `extract()` and `nli()` return scripted fixtures keyed to
   the scenarios, and nothing is measured. Typed questions call Gemini when `GEMINI_API_KEY` is set
   (`backend/app/llm/provider.py`, see "Gemini mode" above). Setting `TREE_LLM_PROVIDER` to any name
   other than `mock` or `gemini` raises `NotImplementedError`.

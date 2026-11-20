@@ -1,0 +1,274 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OCBC TREE v2 assessment request",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "2"
+    },
+    "turn_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "input_revision": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "bundle_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "as_of": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "employee": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "enum": [
+            "RM",
+            "BM",
+            "CC"
+          ]
+        },
+        "region": {
+          "enum": [
+            "SG",
+            "MY"
+          ]
+        }
+      },
+      "required": [
+        "role",
+        "region"
+      ]
+    },
+    "question": {
+      "type": "string",
+      "minLength": 1
+    },
+    "answer": {
+      "type": "string"
+    },
+    "history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "turn_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "question": {
+            "type": "string",
+            "minLength": 1
+          },
+          "answer": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "turn_id",
+          "question",
+          "answer"
+        ]
+      }
+    },
+    "facts": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "enum": [
+                  "product",
+                  "currency",
+                  "booking_region",
+                  "segment",
+                  "channel"
+                ]
+              },
+              "value": {
+                "type": "string",
+                "minLength": 1
+              },
+              "origin": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "form",
+                      "employee_text",
+                      "fixture"
+                    ]
+                  },
+                  "ref": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "span": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "start": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "end": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 9007199254740991
+                      },
+                      "quote": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "start",
+                      "end",
+                      "quote"
+                    ]
+                  }
+                },
+                "required": [
+                  "kind",
+                  "ref"
+                ]
+              }
+            },
+            "required": [
+              "key",
+              "value",
+              "origin"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "enum": [
+                  "tenor_months",
+                  "deposit_cents",
+                  "transfer_cents"
+                ]
+              },
+              "value": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "origin": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "form",
+                      "employee_text",
+                      "fixture"
+                    ]
+                  },
+                  "ref": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "span": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "start": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "end": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 9007199254740991
+                      },
+                      "quote": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "start",
+                      "end",
+                      "quote"
+                    ]
+                  }
+                },
+                "required": [
+                  "kind",
+                  "ref"
+                ]
+              }
+            },
+            "required": [
+              "key",
+              "value",
+              "origin"
+            ]
+          }
+        ]
+      }
+    },
+    "confirmation": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "choice": {
+              "enum": [
+                "rate_only",
+                "plan_and_rate",
+                "other",
+                "incomplete",
+                "conflicting"
+              ]
+            },
+            "input_revision": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "choice",
+            "input_revision"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "turn_id",
+    "input_revision",
+    "bundle_id",
+    "as_of",
+    "employee",
+    "question",
+    "answer",
+    "history",
+    "facts",
+    "confirmation"
+  ]
+}

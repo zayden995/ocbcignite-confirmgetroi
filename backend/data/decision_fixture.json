@@ -1,0 +1,81 @@
+{
+  "schema_version": "2",
+  "turn_id": "hero",
+  "input_revision": 1,
+  "bundle_id": "sg-retail-demo-v1",
+  "as_of": "2026-10-28",
+  "employee": {
+    "role": "RM",
+    "region": "SG"
+  },
+  "question": "My customer wants to fund a S$150,000, 12-month SteadyGrowth deposit in one FAST transfer. Can that transfer fit the limit and what standard rate applies?",
+  "answer": "The standard rate for this FAST-funded deposit is 2.60% p.a.",
+  "history": [],
+  "facts": [
+    {
+      "key": "product",
+      "value": "SteadyGrowth",
+      "origin": {
+        "kind": "fixture",
+        "ref": "hero-v1/product"
+      }
+    },
+    {
+      "key": "currency",
+      "value": "SGD",
+      "origin": {
+        "kind": "fixture",
+        "ref": "hero-v1/currency"
+      }
+    },
+    {
+      "key": "booking_region",
+      "value": "SG",
+      "origin": {
+        "kind": "fixture",
+        "ref": "hero-v1/booking_region"
+      }
+    },
+    {
+      "key": "segment",
+      "value": "retail",
+      "origin": {
+        "kind": "fixture",
+        "ref": "hero-v1/segment"
+      }
+    },
+    {
+      "key": "channel",
+      "value": "FAST",
+      "origin": {
+        "kind": "fixture",
+        "ref": "hero-v1/channel"
+      }
+    },
+    {
+      "key": "tenor_months",
+      "value": 12,
+      "origin": {
+        "kind": "fixture",
+        "ref": "hero-v1/tenor_months"
+      }
+    },
+    {
+      "key": "deposit_cents",
+      "value": 15000000,
+      "origin": {
+        "kind": "fixture",
+        "ref": "hero-v1/deposit_cents"
+      }
+    },
+    {
+      "key": "transfer_cents",
+      "value": 15000000,
+      "origin": {
+        "kind": "fixture",
+        "ref": "hero-v1/transfer_cents"
+      }
+    }
+  ],
+  "confirmation": null
+}

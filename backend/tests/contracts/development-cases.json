@@ -1,0 +1,1453 @@
+{
+  "purpose": "Public development cases for the proposed v2 assessor; never sealed holdout results.",
+  "cases": [
+    {
+      "case_id": "D01",
+      "request": {
+        "schema_version": "2",
+        "turn_id": "D01",
+        "input_revision": 1,
+        "bundle_id": "sg-retail-demo-v1",
+        "as_of": "2026-10-28",
+        "employee": {
+          "role": "RM",
+          "region": "SG"
+        },
+        "question": "My customer wants to fund a S$150,000, 12-month SteadyGrowth deposit in one FAST transfer. Can that transfer fit the limit and what standard rate applies?",
+        "answer": "The standard rate for this FAST-funded deposit is 2.60% p.a.",
+        "history": [],
+        "facts": [
+          {
+            "key": "product",
+            "value": "SteadyGrowth",
+            "origin": {
+              "kind": "form",
+              "ref": "product"
+            }
+          },
+          {
+            "key": "currency",
+            "value": "SGD",
+            "origin": {
+              "kind": "form",
+              "ref": "currency"
+            }
+          },
+          {
+            "key": "booking_region",
+            "value": "SG",
+            "origin": {
+              "kind": "form",
+              "ref": "booking_region"
+            }
+          },
+          {
+            "key": "segment",
+            "value": "retail",
+            "origin": {
+              "kind": "form",
+              "ref": "segment"
+            }
+          },
+          {
+            "key": "channel",
+            "value": "FAST",
+            "origin": {
+              "kind": "form",
+              "ref": "channel"
+            }
+          },
+          {
+            "key": "tenor_months",
+            "value": 12,
+            "origin": {
+              "kind": "form",
+              "ref": "tenor_months"
+            }
+          },
+          {
+            "key": "deposit_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "deposit_cents"
+            }
+          },
+          {
+            "key": "transfer_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "transfer_cents"
+            }
+          }
+        ],
+        "confirmation": null
+      },
+      "expected": {
+        "task_id": "plan_and_rate",
+        "verdict": "hold",
+        "coverage": {
+          "covered": 1,
+          "required": 2
+        },
+        "branch_statuses": {
+          "deposit_rate": "covered",
+          "single_transfer": "omitted"
+        },
+        "next_kind": "review_repair"
+      }
+    },
+    {
+      "case_id": "D02",
+      "request": {
+        "schema_version": "2",
+        "turn_id": "D02",
+        "input_revision": 1,
+        "bundle_id": "sg-retail-demo-v1",
+        "as_of": "2026-10-28",
+        "employee": {
+          "role": "RM",
+          "region": "SG"
+        },
+        "question": "What standard annual rate should I quote for this qualifying FAST-funded placement?",
+        "answer": "The standard rate for this FAST-funded deposit is 2.60% p.a.",
+        "history": [],
+        "facts": [
+          {
+            "key": "product",
+            "value": "SteadyGrowth",
+            "origin": {
+              "kind": "form",
+              "ref": "product"
+            }
+          },
+          {
+            "key": "currency",
+            "value": "SGD",
+            "origin": {
+              "kind": "form",
+              "ref": "currency"
+            }
+          },
+          {
+            "key": "booking_region",
+            "value": "SG",
+            "origin": {
+              "kind": "form",
+              "ref": "booking_region"
+            }
+          },
+          {
+            "key": "segment",
+            "value": "retail",
+            "origin": {
+              "kind": "form",
+              "ref": "segment"
+            }
+          },
+          {
+            "key": "channel",
+            "value": "FAST",
+            "origin": {
+              "kind": "form",
+              "ref": "channel"
+            }
+          },
+          {
+            "key": "tenor_months",
+            "value": 12,
+            "origin": {
+              "kind": "form",
+              "ref": "tenor_months"
+            }
+          },
+          {
+            "key": "deposit_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "deposit_cents"
+            }
+          },
+          {
+            "key": "transfer_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "transfer_cents"
+            }
+          }
+        ],
+        "confirmation": null
+      },
+      "expected": {
+        "task_id": "rate_only",
+        "verdict": "ready",
+        "coverage": {
+          "covered": 1,
+          "required": 1
+        },
+        "branch_statuses": {
+          "deposit_rate": "covered"
+        },
+        "next_kind": "use"
+      }
+    },
+    {
+      "case_id": "D03",
+      "request": {
+        "schema_version": "2",
+        "turn_id": "D03",
+        "input_revision": 1,
+        "bundle_id": "sg-retail-demo-v1",
+        "as_of": "2026-10-28",
+        "employee": {
+          "role": "RM",
+          "region": "SG"
+        },
+        "question": "Can my customer fund the whole deposit in one FAST transfer, and what standard rate applies?",
+        "answer": "The standard rate for this FAST-funded deposit is 2.60% p.a. A single S$150,000 FAST transfer exceeds the S$100,000 per-transfer limit.",
+        "history": [],
+        "facts": [
+          {
+            "key": "product",
+            "value": "SteadyGrowth",
+            "origin": {
+              "kind": "form",
+              "ref": "product"
+            }
+          },
+          {
+            "key": "currency",
+            "value": "SGD",
+            "origin": {
+              "kind": "form",
+              "ref": "currency"
+            }
+          },
+          {
+            "key": "booking_region",
+            "value": "SG",
+            "origin": {
+              "kind": "form",
+              "ref": "booking_region"
+            }
+          },
+          {
+            "key": "segment",
+            "value": "retail",
+            "origin": {
+              "kind": "form",
+              "ref": "segment"
+            }
+          },
+          {
+            "key": "channel",
+            "value": "FAST",
+            "origin": {
+              "kind": "form",
+              "ref": "channel"
+            }
+          },
+          {
+            "key": "tenor_months",
+            "value": 12,
+            "origin": {
+              "kind": "form",
+              "ref": "tenor_months"
+            }
+          },
+          {
+            "key": "deposit_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "deposit_cents"
+            }
+          },
+          {
+            "key": "transfer_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "transfer_cents"
+            }
+          }
+        ],
+        "confirmation": null
+      },
+      "expected": {
+        "task_id": "plan_and_rate",
+        "verdict": "ready",
+        "coverage": {
+          "covered": 2,
+          "required": 2
+        },
+        "branch_statuses": {
+          "deposit_rate": "covered",
+          "single_transfer": "covered"
+        },
+        "next_kind": "use"
+      }
+    },
+    {
+      "case_id": "D04",
+      "request": {
+        "schema_version": "2",
+        "turn_id": "D04",
+        "input_revision": 1,
+        "bundle_id": "sg-retail-demo-v1",
+        "as_of": "2026-10-28",
+        "employee": {
+          "role": "RM",
+          "region": "SG"
+        },
+        "question": "Can my customer fund the whole deposit in one FAST transfer, and what standard rate applies?",
+        "answer": "The standard rate for this FAST-funded deposit is 2.60% p.a. The whole S$100,000 is within the single-transfer cap.",
+        "history": [],
+        "facts": [
+          {
+            "key": "product",
+            "value": "SteadyGrowth",
+            "origin": {
+              "kind": "form",
+              "ref": "product"
+            }
+          },
+          {
+            "key": "currency",
+            "value": "SGD",
+            "origin": {
+              "kind": "form",
+              "ref": "currency"
+            }
+          },
+          {
+            "key": "booking_region",
+            "value": "SG",
+            "origin": {
+              "kind": "form",
+              "ref": "booking_region"
+            }
+          },
+          {
+            "key": "segment",
+            "value": "retail",
+            "origin": {
+              "kind": "form",
+              "ref": "segment"
+            }
+          },
+          {
+            "key": "channel",
+            "value": "FAST",
+            "origin": {
+              "kind": "form",
+              "ref": "channel"
+            }
+          },
+          {
+            "key": "tenor_months",
+            "value": 12,
+            "origin": {
+              "kind": "form",
+              "ref": "tenor_months"
+            }
+          },
+          {
+            "key": "deposit_cents",
+            "value": 10000000,
+            "origin": {
+              "kind": "form",
+              "ref": "deposit_cents"
+            }
+          },
+          {
+            "key": "transfer_cents",
+            "value": 10000000,
+            "origin": {
+              "kind": "form",
+              "ref": "transfer_cents"
+            }
+          }
+        ],
+        "confirmation": null
+      },
+      "expected": {
+        "task_id": "plan_and_rate",
+        "verdict": "ready",
+        "coverage": {
+          "covered": 2,
+          "required": 2
+        },
+        "branch_statuses": {
+          "deposit_rate": "covered",
+          "single_transfer": "covered"
+        },
+        "next_kind": "use"
+      }
+    },
+    {
+      "case_id": "D05",
+      "request": {
+        "schema_version": "2",
+        "turn_id": "D05",
+        "input_revision": 1,
+        "bundle_id": "sg-retail-demo-v1",
+        "as_of": "2026-10-28",
+        "employee": {
+          "role": "RM",
+          "region": "SG"
+        },
+        "question": "Can my customer fund the whole deposit in one FAST transfer, and what standard rate applies?",
+        "answer": "The standard rate for this FAST-funded deposit is 2.60% p.a. The whole S$100,000.01 is within the single-transfer cap.",
+        "history": [],
+        "facts": [
+          {
+            "key": "product",
+            "value": "SteadyGrowth",
+            "origin": {
+              "kind": "form",
+              "ref": "product"
+            }
+          },
+          {
+            "key": "currency",
+            "value": "SGD",
+            "origin": {
+              "kind": "form",
+              "ref": "currency"
+            }
+          },
+          {
+            "key": "booking_region",
+            "value": "SG",
+            "origin": {
+              "kind": "form",
+              "ref": "booking_region"
+            }
+          },
+          {
+            "key": "segment",
+            "value": "retail",
+            "origin": {
+              "kind": "form",
+              "ref": "segment"
+            }
+          },
+          {
+            "key": "channel",
+            "value": "FAST",
+            "origin": {
+              "kind": "form",
+              "ref": "channel"
+            }
+          },
+          {
+            "key": "tenor_months",
+            "value": 12,
+            "origin": {
+              "kind": "form",
+              "ref": "tenor_months"
+            }
+          },
+          {
+            "key": "deposit_cents",
+            "value": 10000001,
+            "origin": {
+              "kind": "form",
+              "ref": "deposit_cents"
+            }
+          },
+          {
+            "key": "transfer_cents",
+            "value": 10000001,
+            "origin": {
+              "kind": "form",
+              "ref": "transfer_cents"
+            }
+          }
+        ],
+        "confirmation": null
+      },
+      "expected": {
+        "task_id": "plan_and_rate",
+        "verdict": "hold",
+        "coverage": {
+          "covered": 1,
+          "required": 2
+        },
+        "branch_statuses": {
+          "deposit_rate": "covered",
+          "single_transfer": "wrong"
+        },
+        "next_kind": "review_repair"
+      }
+    },
+    {
+      "case_id": "D06",
+      "request": {
+        "schema_version": "2",
+        "turn_id": "D06",
+        "input_revision": 1,
+        "bundle_id": "sg-retail-demo-v1",
+        "as_of": "2026-10-28",
+        "employee": {
+          "role": "RM",
+          "region": "SG"
+        },
+        "question": "I need the standard rate and need to check a proposed single FAST transfer toward this placement. I do not know how much that transfer will be.",
+        "answer": "The standard rate for this FAST-funded deposit is 2.60% p.a.",
+        "history": [],
+        "facts": [
+          {
+            "key": "product",
+            "value": "SteadyGrowth",
+            "origin": {
+              "kind": "form",
+              "ref": "product"
+            }
+          },
+          {
+            "key": "currency",
+            "value": "SGD",
+            "origin": {
+              "kind": "form",
+              "ref": "currency"
+            }
+          },
+          {
+            "key": "booking_region",
+            "value": "SG",
+            "origin": {
+              "kind": "form",
+              "ref": "booking_region"
+            }
+          },
+          {
+            "key": "segment",
+            "value": "retail",
+            "origin": {
+              "kind": "form",
+              "ref": "segment"
+            }
+          },
+          {
+            "key": "channel",
+            "value": "FAST",
+            "origin": {
+              "kind": "form",
+              "ref": "channel"
+            }
+          },
+          {
+            "key": "tenor_months",
+            "value": 12,
+            "origin": {
+              "kind": "form",
+              "ref": "tenor_months"
+            }
+          },
+          {
+            "key": "deposit_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "deposit_cents"
+            }
+          }
+        ],
+        "confirmation": null
+      },
+      "expected": {
+        "task_id": "plan_and_rate",
+        "verdict": "hold",
+        "coverage": {
+          "covered": 1,
+          "required": 2
+        },
+        "branch_statuses": {
+          "deposit_rate": "covered",
+          "single_transfer": "need_fact"
+        },
+        "next_kind": "supply_fact"
+      }
+    },
+    {
+      "case_id": "D07",
+      "request": {
+        "schema_version": "2",
+        "turn_id": "D07",
+        "input_revision": 1,
+        "bundle_id": "sg-retail-demo-v1",
+        "as_of": "2026-10-28",
+        "employee": {
+          "role": "RM",
+          "region": "SG"
+        },
+        "question": "My customer is considering a FAST-funded deposit. What should I tell them?",
+        "answer": "The standard rate for this FAST-funded deposit is 2.60% p.a.",
+        "history": [],
+        "facts": [
+          {
+            "key": "product",
+            "value": "SteadyGrowth",
+            "origin": {
+              "kind": "form",
+              "ref": "product"
+            }
+          },
+          {
+            "key": "currency",
+            "value": "SGD",
+            "origin": {
+              "kind": "form",
+              "ref": "currency"
+            }
+          },
+          {
+            "key": "booking_region",
+            "value": "SG",
+            "origin": {
+              "kind": "form",
+              "ref": "booking_region"
+            }
+          },
+          {
+            "key": "segment",
+            "value": "retail",
+            "origin": {
+              "kind": "form",
+              "ref": "segment"
+            }
+          },
+          {
+            "key": "channel",
+            "value": "FAST",
+            "origin": {
+              "kind": "form",
+              "ref": "channel"
+            }
+          },
+          {
+            "key": "tenor_months",
+            "value": 12,
+            "origin": {
+              "kind": "form",
+              "ref": "tenor_months"
+            }
+          },
+          {
+            "key": "deposit_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "deposit_cents"
+            }
+          },
+          {
+            "key": "transfer_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "transfer_cents"
+            }
+          }
+        ],
+        "confirmation": null
+      },
+      "expected": {
+        "task_id": null,
+        "verdict": "hold",
+        "coverage": {
+          "covered": 0,
+          "required": 0
+        },
+        "branch_statuses": {},
+        "next_kind": "clarify_intent"
+      }
+    },
+    {
+      "case_id": "D08",
+      "request": {
+        "schema_version": "2",
+        "turn_id": "D08",
+        "input_revision": 1,
+        "bundle_id": "sg-retail-demo-v1",
+        "as_of": "2026-10-28",
+        "employee": {
+          "role": "RM",
+          "region": "SG"
+        },
+        "question": "My customer is considering a FAST-funded deposit. What should I tell them?",
+        "answer": "The standard rate for this FAST-funded deposit is 2.60% p.a.",
+        "history": [],
+        "facts": [
+          {
+            "key": "product",
+            "value": "SteadyGrowth",
+            "origin": {
+              "kind": "form",
+              "ref": "product"
+            }
+          },
+          {
+            "key": "currency",
+            "value": "SGD",
+            "origin": {
+              "kind": "form",
+              "ref": "currency"
+            }
+          },
+          {
+            "key": "booking_region",
+            "value": "SG",
+            "origin": {
+              "kind": "form",
+              "ref": "booking_region"
+            }
+          },
+          {
+            "key": "segment",
+            "value": "retail",
+            "origin": {
+              "kind": "form",
+              "ref": "segment"
+            }
+          },
+          {
+            "key": "channel",
+            "value": "FAST",
+            "origin": {
+              "kind": "form",
+              "ref": "channel"
+            }
+          },
+          {
+            "key": "tenor_months",
+            "value": 12,
+            "origin": {
+              "kind": "form",
+              "ref": "tenor_months"
+            }
+          },
+          {
+            "key": "deposit_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "deposit_cents"
+            }
+          },
+          {
+            "key": "transfer_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "transfer_cents"
+            }
+          }
+        ],
+        "confirmation": {
+          "choice": "plan_and_rate",
+          "input_revision": 1
+        }
+      },
+      "expected": {
+        "task_id": "plan_and_rate",
+        "verdict": "hold",
+        "coverage": {
+          "covered": 1,
+          "required": 2
+        },
+        "branch_statuses": {
+          "deposit_rate": "covered",
+          "single_transfer": "omitted"
+        },
+        "next_kind": "review_repair"
+      }
+    },
+    {
+      "case_id": "D09",
+      "request": {
+        "schema_version": "2",
+        "turn_id": "D09",
+        "input_revision": 1,
+        "bundle_id": "sg-retail-demo-v1",
+        "as_of": "2026-10-28",
+        "employee": {
+          "role": "RM",
+          "region": "SG"
+        },
+        "question": "My customer is considering a FAST-funded deposit. What should I tell them?",
+        "answer": "The standard rate for this FAST-funded deposit is 2.60% p.a.",
+        "history": [],
+        "facts": [
+          {
+            "key": "product",
+            "value": "SteadyGrowth",
+            "origin": {
+              "kind": "form",
+              "ref": "product"
+            }
+          },
+          {
+            "key": "currency",
+            "value": "SGD",
+            "origin": {
+              "kind": "form",
+              "ref": "currency"
+            }
+          },
+          {
+            "key": "booking_region",
+            "value": "SG",
+            "origin": {
+              "kind": "form",
+              "ref": "booking_region"
+            }
+          },
+          {
+            "key": "segment",
+            "value": "retail",
+            "origin": {
+              "kind": "form",
+              "ref": "segment"
+            }
+          },
+          {
+            "key": "channel",
+            "value": "FAST",
+            "origin": {
+              "kind": "form",
+              "ref": "channel"
+            }
+          },
+          {
+            "key": "tenor_months",
+            "value": 12,
+            "origin": {
+              "kind": "form",
+              "ref": "tenor_months"
+            }
+          },
+          {
+            "key": "deposit_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "deposit_cents"
+            }
+          },
+          {
+            "key": "transfer_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "transfer_cents"
+            }
+          }
+        ],
+        "confirmation": {
+          "choice": "rate_only",
+          "input_revision": 1
+        }
+      },
+      "expected": {
+        "task_id": "rate_only",
+        "verdict": "ready",
+        "coverage": {
+          "covered": 1,
+          "required": 1
+        },
+        "branch_statuses": {
+          "deposit_rate": "covered"
+        },
+        "next_kind": "use",
+        "hidden_intended_use": "plan_and_rate",
+        "hidden_use_verdict": "hold"
+      }
+    },
+    {
+      "case_id": "D10",
+      "request": {
+        "schema_version": "2",
+        "turn_id": "D10",
+        "input_revision": 1,
+        "bundle_id": "sg-retail-demo-v1",
+        "as_of": "2026-10-28",
+        "employee": {
+          "role": "RM",
+          "region": "SG"
+        },
+        "question": "My customer is considering a FAST-funded deposit. What should I tell them?",
+        "answer": "The standard rate for this FAST-funded deposit is 2.60% p.a.",
+        "history": [],
+        "facts": [
+          {
+            "key": "product",
+            "value": "SteadyGrowth",
+            "origin": {
+              "kind": "form",
+              "ref": "product"
+            }
+          },
+          {
+            "key": "currency",
+            "value": "SGD",
+            "origin": {
+              "kind": "form",
+              "ref": "currency"
+            }
+          },
+          {
+            "key": "booking_region",
+            "value": "SG",
+            "origin": {
+              "kind": "form",
+              "ref": "booking_region"
+            }
+          },
+          {
+            "key": "segment",
+            "value": "retail",
+            "origin": {
+              "kind": "form",
+              "ref": "segment"
+            }
+          },
+          {
+            "key": "channel",
+            "value": "FAST",
+            "origin": {
+              "kind": "form",
+              "ref": "channel"
+            }
+          },
+          {
+            "key": "tenor_months",
+            "value": 12,
+            "origin": {
+              "kind": "form",
+              "ref": "tenor_months"
+            }
+          },
+          {
+            "key": "deposit_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "deposit_cents"
+            }
+          },
+          {
+            "key": "transfer_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "transfer_cents"
+            }
+          }
+        ],
+        "confirmation": {
+          "choice": "incomplete",
+          "input_revision": 1
+        }
+      },
+      "expected": {
+        "task_id": null,
+        "verdict": "hold",
+        "coverage": {
+          "covered": 0,
+          "required": 0
+        },
+        "branch_statuses": {},
+        "next_kind": "clarify_intent"
+      }
+    },
+    {
+      "case_id": "D11",
+      "request": {
+        "schema_version": "2",
+        "turn_id": "D11",
+        "input_revision": 1,
+        "bundle_id": "sg-retail-demo-v1",
+        "as_of": "2026-10-28",
+        "employee": {
+          "role": "RM",
+          "region": "SG"
+        },
+        "question": "Can my customer fund the whole deposit in one FAST transfer, and what standard rate applies?",
+        "answer": "",
+        "history": [],
+        "facts": [
+          {
+            "key": "product",
+            "value": "SteadyGrowth",
+            "origin": {
+              "kind": "form",
+              "ref": "product"
+            }
+          },
+          {
+            "key": "currency",
+            "value": "SGD",
+            "origin": {
+              "kind": "form",
+              "ref": "currency"
+            }
+          },
+          {
+            "key": "booking_region",
+            "value": "SG",
+            "origin": {
+              "kind": "form",
+              "ref": "booking_region"
+            }
+          },
+          {
+            "key": "segment",
+            "value": "retail",
+            "origin": {
+              "kind": "form",
+              "ref": "segment"
+            }
+          },
+          {
+            "key": "channel",
+            "value": "FAST",
+            "origin": {
+              "kind": "form",
+              "ref": "channel"
+            }
+          },
+          {
+            "key": "tenor_months",
+            "value": 12,
+            "origin": {
+              "kind": "form",
+              "ref": "tenor_months"
+            }
+          },
+          {
+            "key": "deposit_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "deposit_cents"
+            }
+          },
+          {
+            "key": "transfer_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "transfer_cents"
+            }
+          }
+        ],
+        "confirmation": null
+      },
+      "expected": {
+        "task_id": "plan_and_rate",
+        "verdict": "hold",
+        "coverage": {
+          "covered": 0,
+          "required": 2
+        },
+        "branch_statuses": {
+          "deposit_rate": "omitted",
+          "single_transfer": "omitted"
+        },
+        "next_kind": "review_repair"
+      }
+    },
+    {
+      "case_id": "D12",
+      "request": {
+        "schema_version": "2",
+        "turn_id": "D12",
+        "input_revision": 1,
+        "bundle_id": "sg-retail-demo-v1",
+        "as_of": "2026-10-28",
+        "employee": {
+          "role": "RM",
+          "region": "SG"
+        },
+        "question": "What early-withdrawal fee will this deposit incur?",
+        "answer": "The standard rate for this FAST-funded deposit is 2.60% p.a.",
+        "history": [],
+        "facts": [
+          {
+            "key": "product",
+            "value": "SteadyGrowth",
+            "origin": {
+              "kind": "form",
+              "ref": "product"
+            }
+          },
+          {
+            "key": "currency",
+            "value": "SGD",
+            "origin": {
+              "kind": "form",
+              "ref": "currency"
+            }
+          },
+          {
+            "key": "booking_region",
+            "value": "SG",
+            "origin": {
+              "kind": "form",
+              "ref": "booking_region"
+            }
+          },
+          {
+            "key": "segment",
+            "value": "retail",
+            "origin": {
+              "kind": "form",
+              "ref": "segment"
+            }
+          },
+          {
+            "key": "channel",
+            "value": "FAST",
+            "origin": {
+              "kind": "form",
+              "ref": "channel"
+            }
+          },
+          {
+            "key": "tenor_months",
+            "value": 12,
+            "origin": {
+              "kind": "form",
+              "ref": "tenor_months"
+            }
+          },
+          {
+            "key": "deposit_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "deposit_cents"
+            }
+          },
+          {
+            "key": "transfer_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "transfer_cents"
+            }
+          }
+        ],
+        "confirmation": null
+      },
+      "expected": {
+        "task_id": null,
+        "verdict": "hold",
+        "coverage": {
+          "covered": 0,
+          "required": 0
+        },
+        "branch_statuses": {},
+        "next_kind": "review_policy"
+      }
+    },
+    {
+      "case_id": "D13",
+      "request": {
+        "schema_version": "2",
+        "turn_id": "D13",
+        "input_revision": 1,
+        "bundle_id": "sg-retail-demo-v1",
+        "as_of": "2026-10-28",
+        "employee": {
+          "role": "RM",
+          "region": "SG"
+        },
+        "question": "Can my customer fund the whole deposit in one FAST transfer, and what standard rate applies?",
+        "answer": "The standard rate for this FAST-funded deposit is 2.60% p.a. A single S$150,000 FAST transfer exceeds the S$100,000 per-transfer limit. The bank guarantees immediate settlement.",
+        "history": [],
+        "facts": [
+          {
+            "key": "product",
+            "value": "SteadyGrowth",
+            "origin": {
+              "kind": "form",
+              "ref": "product"
+            }
+          },
+          {
+            "key": "currency",
+            "value": "SGD",
+            "origin": {
+              "kind": "form",
+              "ref": "currency"
+            }
+          },
+          {
+            "key": "booking_region",
+            "value": "SG",
+            "origin": {
+              "kind": "form",
+              "ref": "booking_region"
+            }
+          },
+          {
+            "key": "segment",
+            "value": "retail",
+            "origin": {
+              "kind": "form",
+              "ref": "segment"
+            }
+          },
+          {
+            "key": "channel",
+            "value": "FAST",
+            "origin": {
+              "kind": "form",
+              "ref": "channel"
+            }
+          },
+          {
+            "key": "tenor_months",
+            "value": 12,
+            "origin": {
+              "kind": "form",
+              "ref": "tenor_months"
+            }
+          },
+          {
+            "key": "deposit_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "deposit_cents"
+            }
+          },
+          {
+            "key": "transfer_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "transfer_cents"
+            }
+          }
+        ],
+        "confirmation": null
+      },
+      "expected": {
+        "task_id": "plan_and_rate",
+        "verdict": "hold",
+        "coverage": {
+          "covered": 2,
+          "required": 2
+        },
+        "branch_statuses": {
+          "deposit_rate": "covered",
+          "single_transfer": "covered"
+        },
+        "next_kind": "review_text",
+        "extra_must_block": true
+      }
+    },
+    {
+      "case_id": "D14",
+      "request": {
+        "schema_version": "2",
+        "turn_id": "D14",
+        "input_revision": 1,
+        "bundle_id": "sg-retail-demo-v1",
+        "as_of": "2026-12-31",
+        "employee": {
+          "role": "RM",
+          "region": "SG"
+        },
+        "question": "Can my customer fund the whole deposit in one FAST transfer, and what standard rate applies?",
+        "answer": "The standard rate for this FAST-funded deposit is 2.60% p.a. A single S$150,000 FAST transfer exceeds the S$100,000 per-transfer limit.",
+        "history": [],
+        "facts": [
+          {
+            "key": "product",
+            "value": "SteadyGrowth",
+            "origin": {
+              "kind": "form",
+              "ref": "product"
+            }
+          },
+          {
+            "key": "currency",
+            "value": "SGD",
+            "origin": {
+              "kind": "form",
+              "ref": "currency"
+            }
+          },
+          {
+            "key": "booking_region",
+            "value": "SG",
+            "origin": {
+              "kind": "form",
+              "ref": "booking_region"
+            }
+          },
+          {
+            "key": "segment",
+            "value": "retail",
+            "origin": {
+              "kind": "form",
+              "ref": "segment"
+            }
+          },
+          {
+            "key": "channel",
+            "value": "FAST",
+            "origin": {
+              "kind": "form",
+              "ref": "channel"
+            }
+          },
+          {
+            "key": "tenor_months",
+            "value": 12,
+            "origin": {
+              "kind": "form",
+              "ref": "tenor_months"
+            }
+          },
+          {
+            "key": "deposit_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "deposit_cents"
+            }
+          },
+          {
+            "key": "transfer_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "transfer_cents"
+            }
+          }
+        ],
+        "confirmation": null
+      },
+      "expected": {
+        "task_id": "plan_and_rate",
+        "verdict": "hold",
+        "coverage": {
+          "covered": 1,
+          "required": 2
+        },
+        "branch_statuses": {
+          "deposit_rate": "policy_review",
+          "single_transfer": "covered"
+        },
+        "next_kind": "review_policy"
+      }
+    },
+    {
+      "case_id": "D15",
+      "request": {
+        "schema_version": "2",
+        "turn_id": "D15",
+        "input_revision": 1,
+        "bundle_id": "sg-retail-demo-v1",
+        "as_of": "2026-10-28",
+        "employee": {
+          "role": "RM",
+          "region": "SG"
+        },
+        "question": "My customer is considering a FAST-funded deposit. What should I tell them?",
+        "answer": "The standard rate for this FAST-funded deposit is 2.60% p.a.",
+        "history": [],
+        "facts": [
+          {
+            "key": "product",
+            "value": "SteadyGrowth",
+            "origin": {
+              "kind": "form",
+              "ref": "product"
+            }
+          },
+          {
+            "key": "currency",
+            "value": "SGD",
+            "origin": {
+              "kind": "form",
+              "ref": "currency"
+            }
+          },
+          {
+            "key": "booking_region",
+            "value": "SG",
+            "origin": {
+              "kind": "form",
+              "ref": "booking_region"
+            }
+          },
+          {
+            "key": "segment",
+            "value": "retail",
+            "origin": {
+              "kind": "form",
+              "ref": "segment"
+            }
+          },
+          {
+            "key": "channel",
+            "value": "FAST",
+            "origin": {
+              "kind": "form",
+              "ref": "channel"
+            }
+          },
+          {
+            "key": "tenor_months",
+            "value": 12,
+            "origin": {
+              "kind": "form",
+              "ref": "tenor_months"
+            }
+          },
+          {
+            "key": "deposit_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "deposit_cents"
+            }
+          },
+          {
+            "key": "transfer_cents",
+            "value": 15000000,
+            "origin": {
+              "kind": "form",
+              "ref": "transfer_cents"
+            }
+          }
+        ],
+        "confirmation": {
+          "choice": "conflicting",
+          "input_revision": 1
+        }
+      },
+      "expected": {
+        "task_id": null,
+        "verdict": "hold",
+        "coverage": {
+          "covered": 0,
+          "required": 0
+        },
+        "branch_statuses": {},
+        "next_kind": "clarify_intent"
+      }
+    }
+  ]
+}

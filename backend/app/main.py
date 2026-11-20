@@ -2,12 +2,15 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from fastapi.responses import JSONResponse
 from google.genai import errors as genai_errors
 from pydantic import BaseModel, Field
 
 from . import config
+from .assessment.intake import FIXTURE
+from .assessment.routes import router as assessment_router
+from .llm.accounting import recording
 from .challenge import COUNTER_TEMPLATES
 from .corpus import load_approved_sources, load_corpus
 from .errors import NoScriptedFixture, ScenarioNotFound
@@ -21,6 +24,7 @@ from .tree import STATE_LABELS
 from .verify import SC_REFUTE, SC_VERIFY, SE_VERIFY
 
 app = FastAPI(title="OCBC TREE (prototype, synthetic data)")
+app.include_router(assessment_router)
 corpus = load_corpus()
 
 
@@ -64,6 +68,7 @@ def meta():
         "llm_badge": MOCK_BADGE if llm.is_mock else None,
         "roles": defs["roles"],
         "regions": defs["regions"],
+        "assessment_fixture": {**FIXTURE.model_dump(mode="json", exclude_none=True), "confirmation": None},
         "scenarios": [
             {"id": s["id"], "title": s["title"], "employee": s["employee"], "question": s["question"]}
             for s in load_scenarios()
@@ -141,6 +146,7 @@ class ChatTurnInput(BaseModel):
 
 
 class AskRequest(BaseModel):
+    turn_id: str = "custom"
     question: str
     role: str = "RM"
     region: str = "SG"
@@ -187,7 +193,7 @@ def naive_rag_retrieve(question: str, k: int = 2) -> list:
 
 
 @app.post("/api/ask")
-def ask_custom(req: AskRequest):
+def ask_custom(req: AskRequest, response: Response):
     _check_employee(req.role, req.region)
     llm = get_llm()
     if llm.is_mock:
@@ -198,9 +204,13 @@ def ask_custom(req: AskRequest):
         )
     # Naive bot only sees top-2 flat text hits (no governance filters, no amendment graph traversal)
     naive_hits = naive_rag_retrieve(req.question, k=2)
-    answer = llm.generate_answer(
-        req.question, naive_hits, role=req.role, region=req.region, history=_history_pairs(req.history)
-    )
+    try:
+        with recording(req.turn_id, 1, "generation", response):
+            answer = llm.generate_answer(
+                req.question, naive_hits, role=req.role, region=req.region, history=_history_pairs(req.history)
+            )
+    except genai_errors.APIError as exc:
+        raise HTTPException(502, f"Gemini request failed: {exc}", headers={"X-Tree-Attempts": response.headers["X-Tree-Attempts"]}) from exc
     return {
         "id": "custom",
         "title": "Custom question",
