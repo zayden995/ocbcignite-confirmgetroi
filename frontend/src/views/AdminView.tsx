@@ -1,4 +1,3 @@
-import { CostInspector } from "../assessment/CostInspector";
 import { useEffect, useState } from "react";
 import { ClaimDrawer } from "../components/ClaimDrawer";
 import { GraphView } from "../components/GraphView";
@@ -7,7 +6,6 @@ import { AdminOverview, ConfigTab, CorpusTab, RawJsonTab, TraceTab } from "./adm
 
 const TABS = [
   { id: "overview", label: "Run summary", needsResult: true },
-  { id: "cost", label: "Verification cost", needsResult: false },
   { id: "trace", label: "Pipeline trace", needsResult: true },
   { id: "corpus", label: "Corpus and whitelist", needsResult: false },
   { id: "config", label: "Matrix and settings", needsResult: false },
@@ -35,7 +33,6 @@ export function AdminView() {
           <label>
             Scenario
             <select value={scenarioId ?? ""} onChange={(e) => selectScenario(e.target.value)}>
-              {scenarioId && !meta?.scenarios.some(s => s.id === scenarioId) && <option value={scenarioId}>Current chat turn</option>}
               {meta?.scenarios.map((s) => (
                 <option key={s.id} value={s.id}>{s.title}</option>
               ))}
@@ -57,7 +54,7 @@ export function AdminView() {
               ))}
             </select>
           </label>
-          <button className="run" onClick={() => void run()} disabled={loading || !scenarioId || scenarioId.startsWith("decision-")}>
+          <button className="run" onClick={() => void run()} disabled={loading || !scenarioId}>
             {loading ? "Running…" : "Run TREE"}
           </button>
         </div>
@@ -77,7 +74,6 @@ export function AdminView() {
         ) : (
           <>
             {tab === "overview" && result && <AdminOverview result={result} />}
-            {tab === "cost" && <CostInspector/>}
             {tab === "trace" && result && <TraceTab result={result} />}
             {tab === "corpus" && <CorpusTab />}
             {tab === "config" && <ConfigTab />}

@@ -71,8 +71,8 @@ export interface Leaf {
   shade: number;
 }
 
-export interface BranchGeo<T = ClaimNodeData> {
-  claim: T;
+export interface BranchGeo {
+  claim: ClaimNodeData;
   center: Pt; // card centre (the branch ends here)
   d: string; // tapered branch polygon
   grad: { x1: number; y1: number; x2: number; y2: number };
@@ -124,21 +124,21 @@ const THREAD = { supports: "#2E7D32", challenges: "#C8102E", rejected: "#C8102E"
 /** Challenging evidence only counts when scoring used it (not when it was not triggered or needs input). */
 export const isScored = (effect: string | null) => effect === "counts" || effect === "conflict";
 
-export function layoutCanopy<T extends { id: string }>(nodes: T[]) {
+export function layoutTree(result: ProofTreeResult): TreeLayout {
   const W = 1000;
-  const n = nodes.length;
+  const n = result.claims.length;
   const cardW = n <= 3 ? 224 : n === 4 ? 196 : 164;
   const cardH = 118;
 
   // --- canopy: one branch per claim, fanned out above the trunk
   const tOf = (i: number) => (n === 1 ? 0 : (i - (n - 1) / 2) / ((n - 1) / 2));
   const spread = n === 2 ? 235 : n === 3 ? 320 : 340;
-  const centers: Pt[] = nodes.map((_, i) => {
+  const centers: Pt[] = result.claims.map((_, i) => {
     const t = tOf(i);
     const stagger = n >= 4 && i % 2 === 1 ? 128 : 0;
     return { x: W / 2 + t * spread, y: 190 + 64 * t * t + stagger };
   });
-  const canopyBottom = Math.max(0, ...centers.map((c) => c.y)) + cardH / 2 + 34;
+  const canopyBottom = Math.max(...centers.map((c) => c.y)) + cardH / 2 + 34;
   const trunkTop = canopyBottom + 26;
   const ground = trunkTop + 175;
 
@@ -147,7 +147,7 @@ export function layoutCanopy<T extends { id: string }>(nodes: T[]) {
     `L${W / 2 + 78},${ground + 16} C${W / 2 + 40},${ground - 60} ${W / 2 + 28},${trunkTop + 70} ${W / 2 + 30},${trunkTop} Z`;
 
   const fork: Pt = { x: W / 2, y: trunkTop + 14 };
-  const branches: BranchGeo<T>[] = nodes.map((claim, i) => {
+  const branches: BranchGeo[] = result.claims.map((claim, i) => {
     const t = tOf(i);
     const c = centers[i];
     const p1 = { x: fork.x + t * 24, y: trunkTop - 80 };
@@ -179,12 +179,6 @@ export function layoutCanopy<T extends { id: string }>(nodes: T[]) {
     };
   });
 
-  return { W, trunkTop, ground, cardW, cardH, trunkPath, branches };
-}
-
-export function layoutTree(result: ProofTreeResult): TreeLayout {
-  const canopy = layoutCanopy(result.claims);
-  const { W, ground } = canopy;
   // --- roots: one per passage, filtered passages last so lineage lines stay short
   const claimIndex = new Map(result.claims.map((c, i) => [c.id, i]));
   const firstClaim = (rootId: string) => {
@@ -245,7 +239,7 @@ export function layoutTree(result: ProofTreeResult): TreeLayout {
     lineage.push({ d: `M${f(from.x)},${f(from.y - 6)} Q${f(mid.x)},${f(mid.y - 24)} ${f(to.x)},${f(to.y - 6)}`, label: e.kind === "parent" ? "amends" : "supersedes", mid });
   }
 
-  return { ...canopy, H: rootY + 112, roots, lineage };
+  return { W, H: rootY + 112, trunkTop, ground, cardW, cardH, trunkPath, branches, roots, lineage };
 }
 
 /** Curve from a root node up to a claim card, used for the hover "sap lines". */

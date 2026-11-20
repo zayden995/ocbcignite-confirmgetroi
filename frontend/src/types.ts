@@ -211,7 +211,6 @@ export interface ProofTreeResult {
 }
 
 export interface Meta {
-  assessment_fixture: import("./assessment/types").AssessmentRequest;
   demo_date: string;
   data_label: string;
   llm_mode: string;

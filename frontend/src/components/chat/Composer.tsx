@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useTree } from "../../context/TreeContext";
-import { rateQuestion } from "../../assessment/types";
 import { matchQuestion } from "./chatUtils";
 
 /** Accepts both sample questions and any free-form custom question. */
@@ -15,12 +14,14 @@ export function Composer({
 }) {
   const { meta, askCustomQuestion } = useTree();
   const [text, setText] = useState("");
+  const [notice, setNotice] = useState<string | null>(null);
 
   const submit = async () => {
     if (!text.trim() || !meta) return;
     const q = text.trim();
-    const id = q === rateQuestion ? "decision-rate" : q === meta.assessment_fixture.question ? "decision-plan" : matchQuestion(q, meta.scenarios);
+    const id = matchQuestion(q, meta.scenarios);
     setText("");
+    setNotice(null);
     if (id) {
       onAsk(id);
     } else {
@@ -45,11 +46,15 @@ export function Composer({
           aria-label="Message the OCBC assistant"
           autoFocus={autoFocus}
         />
-        <button type="submit" className="send" aria-label="Send" disabled={!meta || !text.trim()}>
+        <button type="submit" className="send" aria-label="Send" disabled={!text.trim()}>
           ➤
         </button>
       </form>
-
+      {notice && (
+        <p className="composer-notice" role="status">
+          {notice}
+        </p>
+      )}
     </div>
   );
 }

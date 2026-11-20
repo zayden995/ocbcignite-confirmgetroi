@@ -2,11 +2,11 @@
 
 Hackathon prototype for the OCBC Ignite Innovation Challenge, Problem Statement 1: how can an employee judge whether an AI agent's answer is trustworthy?
 
-TREE checks whether an AI answer covers the decisions an employee needs to make. It identifies those decisions from the question, applies synthetic policy to employee-supplied facts, and checks the answer against the result. The Proof Tree shows one branch per required decision, including any decisions the answer omitted.
+The decision assessment API checks whether an AI answer covers the decisions an employee needs to make. It identifies those decisions from the question, applies synthetic policy to employee-supplied facts, and returns a verdict with evidence for each required decision.
 
 The four original scenarios demonstrate claim-level verification. TREE checks each claim's sources and policy conditions, looks for conflicting evidence, then compares the result with a citation-only check.
 
-> **Synthetic demo.** The decision starters and the four claim scenarios run offline. Typed chat uses Gemini when configured. All policy data and rates are synthetic.
+> **Synthetic demo.** The decision assessment fixture and the four claim scenarios run offline. Typed chat uses Gemini when configured. All policy data and rates are synthetic.
 
 ## Run it
 
@@ -25,14 +25,15 @@ npm install
 npm run dev          # open http://localhost:5173  (the dev server proxies /api to :8000)
 ```
 
-## Try the decision verifier
+## Try the decision verifier API
 
-1. In employee chat, choose **Quote the standard rate**, then select **Run decision check**. The starter answer quotes **2.60% p.a.** and returns **Ready · 1/1**.
-2. Open **Review question and answer**. Replace only the question with “My customer wants to fund a S$150,000, 12-month SteadyGrowth deposit in one FAST transfer. Can that transfer fit the limit and what standard rate applies?” Run the check again. The same answer returns **Hold · 1/2**.
-3. Open **Single FAST transfer** in the Proof Tree. The branch has no quote from the answer. The evidence drawer cites **FD-301 v2** and shows that the transfer exceeds the **S$100,000** cap by **S$50,000**.
-4. Review the proposed repair and select **Use proposed answer for recheck**. Run the check again for **Ready · 2/2**. Use **Inspect assessment** to reopen the earlier Hold.
+Start the backend, then run this from the repository root.
 
-In **Admin → Verification cost**, you can inspect model usage for generation and verification, including retries and rechecks. Offline fixtures show **No provider call**. Live estimates use [dated model prices](backend/data/model_prices.json). Set `TREE_MODEL_PRICES` to load a different price file. An attempt without reported usage or a matching price makes the total unknown, with any known subtotal shown.
+```powershell
+Invoke-RestMethod -Method Post -Uri 'http://localhost:8000/api/v2/assess?mode=fixture' -ContentType 'application/json' -InFile 'backend/data/decision_fixture.json'
+```
+
+The fixture asks for the standard rate and checks one S$150,000 FAST transfer. The rate-only answer gives **Hold · 1/2** because it omits the transfer decision. The response cites **FD-301 v2**, which sets a **S$100,000** cap, and includes a suggested repair.
 
 ## Gemini mode (the default once a key is set)
 
@@ -45,13 +46,13 @@ GEMINI_API_KEY=<your key>
 # optional: TREE_LLM_PROVIDER=mock         (forces the scripted fixtures even with a key)
 ```
 
-With a key, `POST /api/ask` generates a typed chat answer from the top two keyword matches. The employee can run a decision check through `POST /api/v2/assess`. The original claim checker for typed answers is available through `POST /api/verify-custom`.
+With a key, `POST /api/ask` generates a typed chat answer from the top two keyword matches. The chat verifies claims through `POST /api/verify-custom`. Call `POST /api/v2/assess?mode=live` directly for a live decision assessment.
 
-The browser sends conversation history with each request. Gemini errors are shown in the app. The decision starters, the original four scenarios and **Run all 4 scenarios** continue using offline fixtures when a key is configured.
+The browser sends conversation history with each request. Gemini errors are shown in the app. The four original scenarios and **Run all 4 scenarios** continue using offline fixtures when a key is configured.
 
 ## Verify locally
 
-Build the frontend first for browser testing. Run each block from the repository root in its own PowerShell terminal.
+Run each block from the repository root.
 
 ```powershell
 cd frontend
@@ -61,10 +62,10 @@ npm run build
 ```powershell
 cd backend
 .venv\Scripts\python.exe -m pip install -r requirements-dev.txt
-.venv\Scripts\python.exe -m pytest -q tests browser_tests
+.venv\Scripts\python.exe -m pytest -q
 ```
 
-The suite includes the 15 public decision cases through `POST /api/v2/assess`, the original claim scenarios, and browser checks of the employee and admin views. Browser tests use installed Chrome by default. Set `$env:TREE_BROWSER_CHANNEL = "msedge"` to use installed Edge. Tests use offline fixtures or simulated provider responses.
+The backend suite includes the 15 public decision cases through `POST /api/v2/assess` and the original claim scenarios. Tests use offline fixtures or simulated provider responses.
 
 ## Deploy to Vercel
 
@@ -75,7 +76,7 @@ and needs no CORS or URL settings. The backend reads its synthetic data from `ba
 why that folder lives inside `backend/`. For Gemini mode on the deployed site, add `GEMINI_API_KEY`
 (and optionally `TREE_GEMINI_MODEL`) under the Vercel project's Environment Variables and redeploy
 (there is no `.env` file on Vercel).
-The deployed site can run the decision starters and all four claim scenarios without a Gemini key. Typed chat requires the key.
+The deployed site can run all four claim scenarios without a Gemini key. Typed chat requires the key.
 
 To try the same routing locally: `npx vercel dev --local` (then open http://localhost:3000).
 

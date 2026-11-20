@@ -24,12 +24,6 @@ export function Landing({ onAsk }: { onAsk: (id: string) => void }) {
         <div className="starters" role="group" aria-label="Sample questions">
           <h2>Or try one of these</h2>
           <div className="starter-grid">
-            {meta && [["decision-rate", "Quote the standard rate"], ["decision-plan", "Quote the rate and check one FAST transfer"]].map(([id, label]) => (
-              <button key={id} className="starter" onClick={() => onAsk(id)}>
-                <span className="starter-tag">Synthetic customer · offline fixture</span>
-                <span className="starter-q">{label}</span>
-              </button>
-            ))}
             {meta?.scenarios.map((s) => (
               <button key={s.id} className="starter" onClick={() => onAsk(s.id)}>
                 <span className="starter-tag">{tagOf(s.title)}</span>

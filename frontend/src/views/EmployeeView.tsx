@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import { DecisionDrawer, DecisionTree } from "../assessment/EmployeeCheck";
+import { useEffect, useState } from "react";
 import { ChatPanel } from "../components/chat/ChatPanel";
 import { Landing } from "../components/chat/Landing";
 import { ClaimDrawer } from "../components/ClaimDrawer";
@@ -9,24 +8,35 @@ import { TreeIllustration } from "../components/tree/TreeIllustration";
 import { useTree } from "../context/TreeContext";
 
 export function EmployeeView() {
-  const { result, loading, selectScenario, assessment, activeTurnId, turns, selectedClaimId: selectedId, selectClaim: setSelectedId } = useTree();
-  const journey = assessment.journeys[activeTurnId || ""];
-  const revision = journey?.revisions.find(r => r.result.assessment_id === journey.selected);
-  useEffect(() => setSelectedId(null), [result, revision, setSelectedId]);
-  const selected = result?.claims.find(c => c.id === selectedId);
-  const ask = (id: string) => { if (id !== "custom") selectScenario(id); };
+  const { result, loading, selectScenario } = useTree();
+  // null until a question is asked: that is the "new chat" screen
+  const [askedId, setAskedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // a new result invalidates whatever branch was open
+  useEffect(() => setSelectedId(null), [result]);
+  const selected = result?.claims.find((c) => c.id === selectedId) ?? null;
+
+  const ask = (id: string) => {
+    if (id !== "custom") {
+      selectScenario(id);
+    }
+    setAskedId(id);
+  };
+
   return (
     <main className="employee-page">
-      {!turns.length ? (
+      {askedId === null ? (
         <Landing onAsk={ask} />
       ) : (
         <div className="employee">
           <ChatPanel
             onAsk={ask}
+            onNewChat={() => setAskedId(null)}
           />
 
           <section className="tree-panel" aria-label="Proof Tree">
-            {revision ? <DecisionTree revision={revision} open={setSelectedId}/> : result ? (
+            {result ? (
               <>
                 <div className="tree-panel-head">
                   <h2>Proof Tree</h2>
@@ -42,7 +52,6 @@ export function EmployeeView() {
       )}
 
       <SummaryStrip />
-      {revision && selectedId && <DecisionDrawer revision={revision} selected={selectedId} close={() => setSelectedId(null)}/>}
       {result && selected && <ClaimDrawer claim={selected} result={result} onClose={() => setSelectedId(null)} />}
     </main>
   );

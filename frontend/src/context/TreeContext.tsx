@@ -11,9 +11,6 @@ import {
 import { askCustom, fetchMeta, fetchScenario, verify, verifyCustom } from "../api/client";
 import type { Meta, MissingInput, ProofTreeResult, ScenarioDetail } from "../types";
 
-import { useAssessments } from "../assessment/useAssessments";
-import { rateQuestion } from "../assessment/types";
-
 export interface ChatTurn {
   turnId: string;
   scenarioId: string;
@@ -26,8 +23,6 @@ export interface ChatTurn {
 }
 
 interface TreeState {
-  assessment: ReturnType<typeof useAssessments>;
-  beginAssessment: (turn: ChatTurn) => void;
   meta: Meta | null;
   scenarioId: string;
   scenario: (ScenarioDetail & { ai_thoughts?: string | null }) | null;
@@ -59,7 +54,6 @@ interface TreeState {
 const Ctx = createContext<TreeState | null>(null);
 
 export function TreeProvider({ children }: { children: ReactNode }) {
-  const assessment = useAssessments();
   const [meta, setMeta] = useState<Meta | null>(null);
   const [role, setRoleState] = useState<string>("RM");
   const [region, setRegionState] = useState<string>("SG");
@@ -95,43 +89,16 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     return turns.find((t) => t.turnId === activeTurnId) ?? turns[turns.length - 1];
   }, [turns, activeTurnId]);
 
-  function beginAssessment(turn: ChatTurn) {
-    if (!meta || assessment.journeys[turn.turnId]) return;
-    const fixture = meta.assessment_fixture;
-    const demo = turn.scenarioId.startsWith("decision-");
-    const index = turnsRef.current.findIndex(t => t.turnId === turn.turnId);
-    const prior = index < 0 ? turnsRef.current : turnsRef.current.slice(0, index);
-    const history = prior.filter(t => !t.loadingAnswer).map(t => {
-      const draft = assessment.journeys[t.turnId]?.draft;
-      return {turn_id: t.turnId, question: draft?.question ?? t.scenario.question, answer: draft?.answer ?? t.scenario.ai_answer};
-    });
-    assessment.start({...fixture, turn_id: turn.turnId, question: turn.scenario.question,
-      answer: turn.scenario.ai_answer, employee: {role: roleRef.current, region: regionRef.current},
-      facts: demo ? fixture.facts : [], history}, demo || meta.llm_mode === "mock" ? "fixture" : "live");
-  }
-
   const selectScenario = useCallback((id: string) => {
     if (id === "custom") return;
     setError(null);
     setSelectedClaimId(null);
 
     const newTurnId = `turn-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-    if (id.startsWith("decision-") && meta) {
-      const f = meta.assessment_fixture;
-      const question = id === "decision-rate" ? rateQuestion : f.question;
-      const employee = {role: roleRef.current, region: regionRef.current};
-      const scenario = {id, title: "Synthetic customer", question, ai_answer: f.answer, citations: [], employee};
-      const turn = {turnId: newTurnId, scenarioId: id, scenario, result: null, params: {}, suppliedInputs: []};
-      beginAssessment(turn);
-      setTurns(prev => [...prev, turn]);
-      setActiveTurnId(newTurnId);
-      return;
-    }
     setLoading(true);
 
     fetchScenario(id)
       .then((s) => {
-        assessment.profile(s.employee);
         setRoleState(s.employee.role);
         setRegionState(s.employee.region);
         roleRef.current = s.employee.role;
@@ -158,7 +125,7 @@ export function TreeProvider({ children }: { children: ReactNode }) {
       })
       .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setLoading(false));
-  }, [meta, assessment]);
+  }, []);
 
   const askCustomQuestion = useCallback(async (question: string) => {
     setError(null);
@@ -202,12 +169,11 @@ export function TreeProvider({ children }: { children: ReactNode }) {
 
     try {
       const s = await askCustom({
-        turn_id: newTurnId,
         question,
         role: currentRole,
         region: currentRegion,
         ...(historyPayload.length > 0 ? { history: historyPayload } : {}),
-      }, assessment.record);
+      } as Parameters<typeof askCustom>[0]);
 
       const fallbackThoughts = [
         `1. Analysed employee question for role=${currentRole}, region=${currentRegion}.`,
@@ -222,9 +188,6 @@ export function TreeProvider({ children }: { children: ReactNode }) {
           fallbackThoughts,
       };
 
-      if (turnsRef.current.some(t => t.turnId === newTurnId)) {
-        beginAssessment({...placeholderTurn, scenario: enrichedScenario});
-      }
       setTurns((prev) =>
         prev.map((t) =>
           t.turnId === newTurnId
@@ -238,7 +201,7 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [meta, assessment]);
+  }, []);
 
   const runForTurn = useCallback(
     async (
@@ -430,19 +393,16 @@ export function TreeProvider({ children }: { children: ReactNode }) {
   );
 
   const setRole = useCallback((r: string) => {
-    assessment.profile({role: r, region: regionRef.current});
     setRoleState(r);
     roleRef.current = r;
   }, []);
 
   const setRegion = useCallback((r: string) => {
-    assessment.profile({role: roleRef.current, region: r});
     setRegionState(r);
     regionRef.current = r;
   }, []);
 
   const clearChat = useCallback(() => {
-    assessment.clear();
     setTurns([]);
     setActiveTurnId(null);
     setSelectedClaimId(null);
@@ -450,7 +410,6 @@ export function TreeProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value: TreeState = {
-    assessment, beginAssessment,
     meta,
     scenarioId: activeTurn?.scenarioId ?? (meta?.scenarios[0]?.id || "s1"),
     scenario: activeTurn?.scenario ?? null,
