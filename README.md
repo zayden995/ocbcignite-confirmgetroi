@@ -73,6 +73,10 @@ an error asking for the key.
 
 To try the same routing locally: `npx vercel dev --local` (then open http://localhost:3000).
 
+Link previews (LinkedIn, WhatsApp, Slack, X) come from the `og:` and `twitter:` tags in
+`frontend/index.html`, which use the slide image `frontend/public/brand/ocbc-tree-slide.png`. They hold
+the full site address (`https://ocbcignite-confirmgetroi.vercel.app/`), so update them if the domain changes.
+
 ## Two views
 
 - **Employee** (`http://localhost:5173/`): opens like a new chat ("Good morning, how may I help you?").
