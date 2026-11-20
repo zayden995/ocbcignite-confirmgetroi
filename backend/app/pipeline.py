@@ -30,6 +30,43 @@ def _actions(status: Status, missing: list[str]) -> list[str]:
     return (["Report missing input"] + chips) if missing else chips
 
 
+def check_claim(claim, ctx: RunContext) -> ClaimNode:
+    inv = investigate_claim(claim, ctx)                      # 1. INVESTIGATE
+    needed = challenge_claim(inv, ctx)                       # 2. CHALLENGE
+    missing = list(dict.fromkeys(inv.missing_slots + needed))
+
+    # 3. VERIFY: exceptions that are not triggered, or can't be judged yet, don't score
+    scored = [
+        ScoredEvidence(e, ctx.corpus.records[e.passage_id].passage)
+        for e in inv.evidence
+        if e.effect not in ("not_triggered", "needs_input")
+    ]
+    scores = score_evidence(scored)
+    for e in inv.evidence:
+        e.effect = e.effect or scores.effects.get(e.passage_id)
+    decision = verify_claim(scores.se, scores.sc, inv.conditions, missing, scores.conflict)
+
+    return ClaimNode(
+        id=claim.id, text=claim.text, status=decision.status, reason=decision.reason,
+        se=scores.se, sc=scores.sc,
+        failure_types=classify_failures(
+            decision.status, claim.cited_passage_ids, inv.evidence, inv.conditions, missing, scores.conflict, ctx
+        ),
+        cited_passage_ids=claim.cited_passage_ids,
+        evidence=inv.evidence, conditions=inv.conditions, missing_slots=missing,
+        proposed_correction=propose_correction(decision.status, inv, inv.evidence, missing, ctx),
+        actions=_actions(decision.status, missing),
+        trace=ClaimTrace(
+            investigate=inv.trace_investigate,
+            challenge=inv.trace_challenge,
+            verify=VerifyTrace(
+                se=scores.se, sc=scores.sc, conflict=scores.conflict, missing_slots=missing,
+                status=decision.status, reason=decision.reason,
+            ),
+        ),
+    )
+
+
 def run_tree(
     scenario: dict,
     role: str,
@@ -45,44 +82,7 @@ def run_tree(
     employee = Employee(role=role, region=region, params={**extraction.params, **supplied})
     ctx = RunContext(corpus=corpus, llm=llm, employee=employee, today=today)
 
-    nodes: list[ClaimNode] = []
-    for claim in extraction.claims:
-        inv = investigate_claim(claim, ctx)                      # 1. INVESTIGATE
-        needed = challenge_claim(inv, ctx)                       # 2. CHALLENGE
-        missing = list(dict.fromkeys(inv.missing_slots + needed))
-
-        # 3. VERIFY: exceptions that are not triggered, or can't be judged yet, don't score
-        scored = [
-            ScoredEvidence(e, corpus.records[e.passage_id].passage)
-            for e in inv.evidence
-            if e.effect not in ("not_triggered", "needs_input")
-        ]
-        scores = score_evidence(scored)
-        for e in inv.evidence:
-            e.effect = e.effect or scores.effects.get(e.passage_id)
-        decision = verify_claim(scores.se, scores.sc, inv.conditions, missing, scores.conflict)
-
-        nodes.append(
-            ClaimNode(
-                id=claim.id, text=claim.text, status=decision.status, reason=decision.reason,
-                se=scores.se, sc=scores.sc,
-                failure_types=classify_failures(
-                    decision.status, claim.cited_passage_ids, inv.evidence, inv.conditions, missing, scores.conflict, ctx
-                ),
-                cited_passage_ids=claim.cited_passage_ids,
-                evidence=inv.evidence, conditions=inv.conditions, missing_slots=missing,
-                proposed_correction=propose_correction(decision.status, inv, inv.evidence, missing, ctx),
-                actions=_actions(decision.status, missing),
-                trace=ClaimTrace(
-                    investigate=inv.trace_investigate,
-                    challenge=inv.trace_challenge,
-                    verify=VerifyTrace(
-                        se=scores.se, sc=scores.sc, conflict=scores.conflict, missing_slots=missing,
-                        status=decision.status, reason=decision.reason,
-                    ),
-                ),
-            )
-        )
+    nodes = [check_claim(claim, ctx) for claim in extraction.claims]
 
     overall = overall_status([n.status for n in nodes])
     bad = [n for n in nodes if n.status != "Verified"]

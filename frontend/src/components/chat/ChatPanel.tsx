@@ -1,3 +1,4 @@
+import { EmployeeCheck } from "../../assessment/EmployeeCheck";
 import { useEffect, useRef } from "react";
 import { useTree } from "../../context/TreeContext";
 import { Composer } from "./Composer";
@@ -6,12 +7,11 @@ import { Verdict } from "./Verdict";
 
 export function ChatPanel({
   onAsk,
-  onNewChat,
 }: {
   onAsk: (id: string) => void;
-  onNewChat: () => void;
 }) {
   const {
+    assessment,
     turns,
     activeTurnId,
     setActiveTurnId,
@@ -51,7 +51,6 @@ export function ChatPanel({
               className="ghost small"
               onClick={() => {
                 clearChat();
-                onNewChat();
               }}
               title="Clear conversation history"
             >
@@ -69,6 +68,8 @@ export function ChatPanel({
         )}
 
         {turns.map((turn, index) => {
+          const journey = assessment.journeys[turn.turnId];
+          const displayed = journey?.revisions.find(r => r.result.assessment_id === journey.selected)?.request ?? journey?.draft;
           const isActive = turn.turnId === activeTurnId;
           const hasThoughts = Boolean(
             turn.scenario.ai_thoughts ||
@@ -122,7 +123,7 @@ export function ChatPanel({
 
               {/* 1. User Question Bubble */}
               <div className="msg user">
-                <div className="bubble">{turn.scenario.question}</div>
+                <div className="bubble">{displayed?.question ?? turn.scenario.question}</div>
               </div>
 
               {/* 2. Bot Answer Bubble + Openable Thought Process Tab */}
@@ -235,10 +236,10 @@ export function ChatPanel({
                   )}
 
                   {/* AI Generated Answer Text */}
-                  <p>{turn.scenario.ai_answer}</p>
+                  <p>{displayed?.answer ?? turn.scenario.ai_answer}</p>
 
                   {/* Action Buttons */}
-                  <div className="answer-actions">
+                  {!turn.scenarioId.startsWith("decision-") && <div className="answer-actions">
                     <button
                       type="button"
                       className="run"
@@ -256,14 +257,15 @@ export function ChatPanel({
                         ? "Running TREE…"
                         : turn.result
                         ? "Re-run TREE"
-                        : "Run TREE"}
+                        : journey ? "Check original claims" : "Run TREE"}
                     </button>
                     {!turn.result && (
                       <span className="hint">
                         Investigate, challenge &amp; verify this answer
                       </span>
                     )}
-                  </div>
+                  </div>}
+                  <EmployeeCheck turn={turn}/>
                 </div>
               </div>
 

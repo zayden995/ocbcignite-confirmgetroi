@@ -1,0 +1,162 @@
+{
+  "bundle_id": "sg-retail-demo-v1",
+  "snapshot_id": "synthetic-2026-10-28",
+  "status": "illustrative_review_fixture",
+  "as_of_example": "2026-10-28",
+  "policy_owner": "simulated deposit and payments owner",
+  "independent_reviewer": "simulated reviewer",
+  "task_definitions": {
+    "rate_only": [
+      "deposit_rate"
+    ],
+    "plan_and_rate": [
+      "deposit_rate",
+      "single_transfer"
+    ]
+  },
+  "roles": [
+    "RM",
+    "BM",
+    "CC"
+  ],
+  "common_scope": {
+    "employee_region": "SG",
+    "booking_region": "SG",
+    "segment": "retail",
+    "currency": "SGD",
+    "product": "SteadyGrowth",
+    "channel": "FAST",
+    "tenor_months": 12
+  },
+  "tables": {
+    "deposit_rate": [
+      {
+        "row_id": "rate-fast-12m-v1",
+        "source_ids": [
+          "FD-101#p1",
+          "FD-101#p2",
+          "FD-102#p1",
+          "FD-400#p1"
+        ],
+        "governing": "FD-102#p1",
+        "effective_from": "2026-03-01",
+        "effective_until_exclusive": "2026-12-31",
+        "minimum_placement_if_known_cents": 100000,
+        "rate_bps": 260
+      }
+    ],
+    "single_transfer": [
+      {
+        "row_id": "sg-fast-retail-v2",
+        "source_ids": [
+          "FD-301#p1"
+        ],
+        "historical_predecessor": "FD-300#p1",
+        "governing": "FD-301#p1",
+        "effective_from": "2026-07-01",
+        "effective_until_exclusive": "2027-06-30",
+        "comparison": "less_than_or_equal",
+        "amount_key": "transfer_cents",
+        "limit_cents": 10000000
+      }
+    ]
+  },
+  "source_revisions": [
+    {
+      "passage_id": "FD-100#p1",
+      "version": "2",
+      "text_sha256": "bee9229901fcf019bcb586f2097dc8c3b66799280900f206e7a9f5bf71fdd524",
+      "metadata_sha256": "fc3a4550d91a42d20fbd8df124178e257a70322a25e95e7bba852eaf1d860606"
+    },
+    {
+      "passage_id": "FD-101#p1",
+      "version": "3",
+      "text_sha256": "8c024098813378de848873bd90a859d91aa4450d5260f2b1c0b845afe501c919",
+      "metadata_sha256": "dde8d31550dded9bd7c0616226c3da9d8b0eaf02033fe5b2ef584ceb27d938ac"
+    },
+    {
+      "passage_id": "FD-101#p2",
+      "version": "3",
+      "text_sha256": "d7d1bada9562bf36e044c851da765269e8eb9b2900023cdea2cacd1a11bd27f6",
+      "metadata_sha256": "19c1a52d16536ac287129ead86886b184c3f16daec7d9130dab041d970bf0794"
+    },
+    {
+      "passage_id": "FD-102#p1",
+      "version": "1",
+      "text_sha256": "78eaa2ebd29dd45e0f0ac6836cc23fcc02aca9ef037dbc57778c451cd9ee17fb",
+      "metadata_sha256": "cbb5c6d38b08b5a612999c8128847f2b5b437eff3f570845b60c0d88e814cb09"
+    },
+    {
+      "passage_id": "FD-200#p1",
+      "version": "2",
+      "text_sha256": "1771ecea03d12682431ca0a3db2a61b8d43b236cf2c666ba793720d8aa66d2bf",
+      "metadata_sha256": "c3078af5f4388f08e3571c8be464c86aa3148c53e0c4f523d8c8385bc02757b0"
+    },
+    {
+      "passage_id": "FD-201#p1",
+      "version": "1",
+      "text_sha256": "06482316140cbbc236a38807f3a51f16f776bdb9d25d4ec5297d78a053b25c81",
+      "metadata_sha256": "0548f7ccf1ee49f8b193e238e1c08f758ed0deb9ae7fb9810bb517a62c9b1694"
+    },
+    {
+      "passage_id": "FD-300#p1",
+      "version": "1",
+      "text_sha256": "7474f301b7f80c35e49151e412ea817af1eab80ac3024894b5b839e0b551b567",
+      "metadata_sha256": "8446b1422655675b4edf16799152b742a413bf4b0e6b9e93d1fd3c957bc8a457"
+    },
+    {
+      "passage_id": "FD-301#p1",
+      "version": "2",
+      "text_sha256": "3cb4e6e9b38a751c7d479e9c7b9bcbe11bb3f94361645e2a5485f0f0efbb7dc2",
+      "metadata_sha256": "a92a4844fa6bb97ecd82f2acc0d9bd4bf847ba70fd0dbf56eec25f269ed66bd5"
+    },
+    {
+      "passage_id": "FD-320#p1",
+      "version": "1",
+      "text_sha256": "fc987bb3e92752b84867481556c60b8ae9f7e05c3508f0a7ae71184de40200b0",
+      "metadata_sha256": "b77f16a7ec3bf01dbf2e1748f9eef3d7c82692dc5f8d13969f5fd2c91c1572f7"
+    },
+    {
+      "passage_id": "FD-321#p1",
+      "version": "1",
+      "text_sha256": "4b5b766874c8092c5ad51e441e84951a64937d28edef68dd3a613d73bf02f666",
+      "metadata_sha256": "e56c726d9cad7a113e4f3b017cc541bc90929064a0fe311508d1f9d89ea78aef"
+    },
+    {
+      "passage_id": "FD-400#p1",
+      "version": "1",
+      "text_sha256": "977801f0ca3218ec6de4ead6dfacad6abdc76c6e5666b8f8fbc94b30b57bcc31",
+      "metadata_sha256": "a215bd2d3928669f02faafcc1ff49a8102404695fd0b4d1c8989a9c1d076b9b9"
+    },
+    {
+      "passage_id": "FD-500#p1",
+      "version": "1",
+      "text_sha256": "8b4e233fac47f2de03415484bab6c4854800066fbb11bdb8185a7a9742158614",
+      "metadata_sha256": "f31786707e0f477f313daee6ca460f2190ffed2f7ca00e030bae29b650f742c1"
+    },
+    {
+      "passage_id": "FD-600#p1",
+      "version": "1",
+      "text_sha256": "ec7f49387e0535ec9cb08e4bf7642a11ccde78656cf3f8632af8d4d8971340b8",
+      "metadata_sha256": "6a330e13877481c385872dd5aca6120e19434352f833615fe48579328c38b10a"
+    },
+    {
+      "passage_id": "FD-601#p1",
+      "version": "1",
+      "text_sha256": "ec74b3586c47554312f7f05a8dd28e023dbd26bb99b381d6278a95d756b27494",
+      "metadata_sha256": "a284f092da3e58da5cf7f8bdcb8e6d6a55c778f5b917b432a887fee3df41a1bd"
+    },
+    {
+      "passage_id": "FD-603#p1",
+      "version": "1",
+      "text_sha256": "ed0973bb147bedcad2550d76f57bab7e2e3d46f9dc0d774332296a41deef95a9",
+      "metadata_sha256": "d8c1e2606614e6df8baecac4b7907e99bc5169439e99c6dde0e42fd79120ef17"
+    },
+    {
+      "passage_id": "FD-302#p1",
+      "version": "1",
+      "text_sha256": "bacbb3a9a785e38a5fa10801f472ec92242bbddeca29a8b6040ea50460425d0b",
+      "metadata_sha256": "a9ea3cb12e1be6be92994bf5b36056d92a4abff8dbb7e4c4013b3d4de9fccdba"
+    }
+  ]
+}

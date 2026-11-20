@@ -1,11 +1,16 @@
+import type { Assessment, AssessmentRequest, Attempt, Mode } from "../assessment/types";
 import type { AdminConfig, AdminCorpus, Meta, ProofTreeResult, ScenarioDetail, SummaryResult } from "../types";
 
-async function request<T>(url: string, init?: RequestInit): Promise<T> {
+async function request<T>(url: string, init?: RequestInit, record?: (entries: Attempt[]) => void): Promise<T> {
   const res = await fetch(url, init);
+  const receipts = res.headers.get("X-Tree-Attempts");
+  if (receipts && record) record(JSON.parse(receipts));
   if (!res.ok) {
     let detail = res.statusText;
     try {
-      detail = (await res.json()).detail ?? detail;
+      const problem = (await res.json()).detail;
+      if (typeof problem === "string") detail = problem;
+      if (Array.isArray(problem)) detail = problem.map(item => [item.loc?.join("."), item.msg].filter(Boolean).join(" · ")).join(", ");
     } catch {
       // body was not JSON; keep the status text
     }
@@ -38,16 +43,17 @@ export const verify = (body: {
   });
 
 export const askCustom = (body: {
+  turn_id: string;
   question: string;
   role: string;
   region: string;
   history?: Array<{ question: string; ai_answer: string }>;
-}) =>
+}, record: (entries: Attempt[]) => void) =>
   request<ScenarioDetail>("/api/ask", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
-  });
+  }, record);
 
 export const verifyCustom = (body: {
   question: string;
@@ -64,3 +70,7 @@ export const verifyCustom = (body: {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
+export const assess = (body: AssessmentRequest, mode: Mode, record: (entries: Attempt[]) => void) =>
+  request<Assessment>(`/api/v2/assess?mode=${mode}`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+  }, record);

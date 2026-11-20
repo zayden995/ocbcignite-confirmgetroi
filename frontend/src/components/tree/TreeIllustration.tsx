@@ -134,7 +134,7 @@ export function TreeIllustration({
 
         {/* branches: one per claim, coloured by status */}
         {layout.branches.map((b) => (
-          <BranchLayer key={b.claim.id} b={b} dim={claimDim(b.claim.id)} focused={b.claim.id === focusClaim} />
+          <BranchLayer key={b.claim.id} b={b} color={STATUS_PALETTE[b.claim.status]} fill={`url(#bg-${b.claim.id})`} dim={claimDim(b.claim.id)} focused={b.claim.id === focusClaim} />
         ))}
 
         {/* sap lines: which passages feed or challenge the claim in focus */}
@@ -217,11 +217,12 @@ export function TreeIllustration({
   );
 }
 
-function BranchLayer({ b, dim, focused }: { b: BranchGeo; dim: boolean; focused: boolean }) {
-  const pal = STATUS_PALETTE[b.claim.status];
+export function BranchLayer({ b, color: pal, fill, dim = false, focused = false }: {
+  b: BranchGeo<unknown>; color: typeof STATUS_PALETTE.Verified; fill: string; dim?: boolean; focused?: boolean;
+}) {
   return (
     <g className={dim ? "dim" : ""} pointerEvents="none">
-      <path d={b.d} fill={`url(#bg-${b.claim.id})`} stroke={focused ? "#1c2430" : "none"} strokeWidth={focused ? 1.5 : 0} />
+      <path d={b.d} fill={fill} stroke={focused ? "#1c2430" : "none"} strokeWidth={focused ? 1.5 : 0} />
       {b.twigs.map((t, i) => (
         <g key={i}>
           <path d={t.d} fill={pal.main} />

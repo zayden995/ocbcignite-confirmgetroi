@@ -4,9 +4,9 @@ import os
 from typing import Literal
 from pydantic import BaseModel
 
+from .accounting import generate
 from ..corpus import load_corpus
 from ..models import Claim, Extraction, NLIResult, Passage
-from ..scenarios import load_slot_defs
 
 #: Earlier turns of one conversation as (question, answer) pairs, oldest first. Sent by the client with each request.
 History = list[tuple[str, str]]
@@ -109,12 +109,21 @@ class ProviderLLM:
             f"Policy Passages:\n{context}\n\n"
             f"Current Employee Question: {question}"
         )
-        resp = self._client.models.generate_content(
+        resp = generate(self._client,
             model=self._model,
             contents=prompt,
             config={"thinking_config": {"thinking_level": "low"}},
         )
         return resp.text.strip()
+
+    def structured(self, prompt: str, schema: type[BaseModel]):
+        if self._client is None:
+            raise self._not_implemented("structured")
+        response = generate(self._client, model=self._model, contents=prompt, config={
+            "response_mime_type": "application/json", "response_schema": schema,
+            "thinking_config": {"thinking_level": "low"},
+        })
+        return schema.model_validate_json(response.text)
 
     def extract(self, question: str, answer: str, history: History | None = None) -> Extraction:
         if self._client is None:
@@ -124,16 +133,7 @@ class ProviderLLM:
             f"Prior Conversation History:\n{history_block}\n\n"
             f"Current Question: {question}\nAI Answer: {answer}"
         )
-        resp = self._client.models.generate_content(
-            model=self._model,
-            contents=f"{SYSTEM_EXTRACT}\n\n{prompt}",
-            config={
-                "response_mime_type": "application/json",
-                "response_schema": _GeminiExtraction,
-                "thinking_config": {"thinking_level": "low"},
-            },
-        )
-        parsed = _GeminiExtraction.model_validate_json(resp.text)
+        parsed = self.structured(f"{SYSTEM_EXTRACT}\n\n{prompt}", _GeminiExtraction)
         clean_params = {k: v for k, v in parsed.params.model_dump().items() if v is not None}
 
         # the previous turn's question plus this one, so "what if they use FAST?" still carries over
@@ -146,16 +146,6 @@ class ProviderLLM:
 
         corpus_obj = load_corpus()
         valid_pids = sorted(corpus_obj.records.keys())
-        slot_names = sorted(load_slot_defs().get("slots", {}).keys())
-        dynamic_context = (
-            f"Available corpus passage_ids: {', '.join(valid_pids)}\n"
-            f"Available required_slots: {', '.join(slot_names)}\n"
-        )
-        prompt = (
-            f"{dynamic_context}\n"
-            f"Prior Conversation History:\n{history_block}\n\n"
-            f"Current Question: {question}\nAI Answer: {answer}"
-        )
         for claim in parsed.claims:
             expanded: list[str] = []
             for cid in claim.cited_passage_ids:
@@ -181,27 +171,16 @@ class ProviderLLM:
             return self._nli_cache[cache_key]
 
         all_passages = [rec.passage for rec in load_corpus().records.values()]
-        passages_block = "\n".join(f"- {p.passage_id}: {p.text}" for p in all_passages)
-        prompt = f"Claim: {claim.text}\n\nPassages:\n{passages_block}"
-
-        resp = self._client.models.generate_content(
-            model=self._model,
-            contents=f"{SYSTEM_BATCH_NLI}\n\n{prompt}",
-            config={
-                "response_mime_type": "application/json",
-                "response_schema": _BatchNLIResponse,
-                "thinking_config": {"thinking_level": "low"},
-            },
-        )
-        batch = _BatchNLIResponse.model_validate_json(resp.text)
-        by_id = {item.passage_id: item for item in batch.results}
-
-        for p in all_passages:
-            hit = by_id.get(p.passage_id)
-            if hit and hit.label in ("entails", "contradicts"):
-                score = max(0.0, min(1.0, hit.score))
-                self._nli_cache[(claim.text, p.passage_id)] = NLIResult(label=hit.label, score=score)
-            else:
-                self._nli_cache[(claim.text, p.passage_id)] = NLIResult(label="neutral", score=0.0)
-
+        labels = self.label_evidence(claim, all_passages)
+        self._nli_cache.update(((claim.text, pid), label) for pid, label in labels.items())
         return self._nli_cache[cache_key]
+
+    def label_evidence(self, claim: Claim, passages: list[Passage]) -> dict[str, NLIResult]:
+        passages_block = "\n".join(f"- {p.passage_id}: {p.text}" for p in passages)
+        prompt = f"{SYSTEM_BATCH_NLI}\n\nClaim: {claim.text}\n\nPassages:\n{passages_block}"
+        batch = self.structured(prompt, _BatchNLIResponse)
+        labels = {p.passage_id: NLIResult(label="neutral", score=0.0) for p in passages}
+        for hit in batch.results:
+            if hit.passage_id in labels and hit.label in ("entails", "contradicts"):
+                labels[hit.passage_id] = NLIResult(label=hit.label, score=max(0, min(1, hit.score)))
+        return labels
